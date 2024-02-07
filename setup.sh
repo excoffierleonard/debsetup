@@ -16,8 +16,8 @@ apt install -y vim git curl wget ufw fail2ban wireguard ffmpeg tmux htop ncdu if
 
 # Install ZFS
 echo "Installing ZFS..." 
-apt install linux-headers-amd64
-apt install -t stable-backports zfsutils-linux
+apt install -y linux-headers-amd64
+apt install -y -t stable-backports zfsutils-linux
 
 # Install Duplicacy
 echo "Installing Duplicacy..."
