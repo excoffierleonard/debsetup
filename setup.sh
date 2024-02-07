@@ -31,9 +31,9 @@ sh get-docker.sh
 rm get-docker.sh
 
 # Setup UFW (Uncomplicated Firewall)
-echo "Setting up UFW..."
-ufw allow OpenSSH
-ufw enable
+# echo "Setting up UFW..."
+# ufw allow OpenSSH
+# ufw enable
 
 # Secure SSH
 echo "Securing SSH..."
