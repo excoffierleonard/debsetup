@@ -51,5 +51,3 @@ echo "Removing unnecessary packages..."
 apt autoremove -y
 
 echo "Basic setup completed. Please reboot your server."
-
-
