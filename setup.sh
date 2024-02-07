@@ -12,7 +12,7 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y vim git curl wget ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree
+apt install -y sudo vim git curl wget ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree
 
 # Install ZFS
 echo "Installing ZFS..." 
