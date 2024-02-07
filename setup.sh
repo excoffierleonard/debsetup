@@ -17,6 +17,7 @@ apt install -y sudo vim git curl wget ufw fail2ban wireguard ffmpeg tmux htop nc
 # Install ZFS
 echo "Installing ZFS..." 
 apt install -y linux-headers-amd64
+codename=$(lsb_release -cs);echo "deb http://deb.debian.org/debian $codename-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && sudo apt update
 apt install -y -t stable-backports zfsutils-linux
 
 # Install Duplicacy
