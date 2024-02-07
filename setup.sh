@@ -31,6 +31,10 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 rm get-docker.sh
 
+# Installing QEMU, KVM, libvirt and virtinst
+apt install -y --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system
+apt install -y virtinst
+
 # Setup UFW (Uncomplicated Firewall)
 # echo "Setting up UFW..."
 # ufw allow OpenSSH
