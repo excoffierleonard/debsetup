@@ -47,6 +47,9 @@ systemctl restart ssh
 # systemctl enable fail2ban
 # systemctl start fail2ban
 
+echo "Removing unnecessary packages..."
+apt autoremove -y
+
 echo "Basic setup completed. Please reboot your server."
 
 
