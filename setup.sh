@@ -72,14 +72,14 @@ echo "y" | ufw enable
 
 # Secure SSH
 echo "Securing SSH..."
-sed -i 's/#Port 22/Port $SSH_PORT/g' /etc/ssh/sshd_config # Change SSH port to 422
-sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config
+sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config # Change SSH port to 422
+sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
 systemctl restart ssh
 
 # Fail2Ban
 echo "Setting up Fail2Ban..."
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-sed -i '/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g' /etc/fail2ban/jail.local
+sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
 systemctl enable fail2ban
 systemctl restart fail2ban
 
