@@ -6,6 +6,12 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
+# Checks for Internet Connectivity
+if ! ping -c1 google.com &>/dev/null; then
+    echo "No internet connection detected. Please check your network."
+    exit 1
+fi
+
 # Update and Upgrade
 echo "Updating and upgrading your system..."
 apt update && apt full-upgrade -y
@@ -45,9 +51,12 @@ apt install -y --no-install-recommends qemu-system libvirt-clients libvirt-daemo
 apt install -y virtinst
 
 # Setup UFW (Uncomplicated Firewall)
-# echo "Setting up UFW..."
-# ufw allow OpenSSH
-# ufw enable
+echo "Setting up UFW..."
+ufw allow 422/tcp
+ufw default deny incoming
+ufw default allow outgoing
+ufw logging on
+ufw enable
 
 # Secure SSH
 echo "Securing SSH..."
