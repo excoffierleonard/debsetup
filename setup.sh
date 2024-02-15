@@ -12,7 +12,16 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree neofetch zsh
+
+# Add Neofetch to /etc/bash.bashrc with a conditional statement
+echo '
+# Display Neofetch output for non-root users
+if [ "$(id -u)" != "0" ]; then
+    echo ""  # Add a blank line for better formatting
+    neofetch
+fi
+' | sudo tee -a /etc/bash.bashrc >/dev/null
 
 # Install ZFS
 echo "Installing ZFS..." 
