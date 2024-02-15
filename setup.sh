@@ -66,7 +66,7 @@ apt install -y virtinst
 
 # Setup UFW (Uncomplicated Firewall)
 echo "Setting up UFW..."
-ufw allow 422/tcp
+ufw allow $SSH_PORT/tcp
 ufw default deny incoming
 ufw default allow outgoing
 ufw logging on
