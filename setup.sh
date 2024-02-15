@@ -17,6 +17,8 @@ echo "Enter the SSH port you wish to use:"
 read SSH_PORT
 echo "You have selected port $SSH_PORT for SSH"
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Backups
 echo "Backing up config files..."
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
@@ -85,5 +87,7 @@ systemctl restart fail2ban
 
 echo "Removing unnecessary packages..."
 apt autoremove -y
+
+unset DEBIAN_FRONTEND
 
 echo "Basic setup completed. Please reboot your server."
