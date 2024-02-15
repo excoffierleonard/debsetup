@@ -21,6 +21,7 @@ echo "Installing basic tools..."
 apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree neofetch zsh
 
 # Add Neofetch to /etc/bash.bashrc with a conditional statement
+echo "Setting up Neofetch"
 echo '
 # Display Neofetch output for non-root users
 if [ "$(id -u)" != "0" ]; then
@@ -47,6 +48,7 @@ sh get-docker.sh
 rm get-docker.sh
 
 # Installing QEMU, KVM, libvirt and virtinst
+echo "Installing QEMU, KVM, libvirt and virtinst..."
 apt install -y --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system
 apt install -y virtinst
 
@@ -65,10 +67,11 @@ sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd
 systemctl restart ssh
 
 # Fail2Ban
-# echo "Setting up Fail2Ban..."
-# cp /etc/fail2ban/jail.{conf,local}
-# systemctl enable fail2ban
-# systemctl start fail2ban
+echo "Setting up Fail2Ban..."
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sed -i '/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = 422/g' /etc/fail2ban/jail.local
+systemctl enable fail2ban
+systemctl start fail2ban
 
 echo "Removing unnecessary packages..."
 apt autoremove -y
