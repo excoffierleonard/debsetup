@@ -12,6 +12,11 @@ if ! ping -c1 google.com &>/dev/null; then
     exit 1
 fi
 
+# Backups
+echo "Backing up config files..."
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
+
 # Update and Upgrade
 echo "Updating and upgrading your system..."
 apt update && apt full-upgrade -y
@@ -58,7 +63,7 @@ ufw allow 422/tcp
 ufw default deny incoming
 ufw default allow outgoing
 ufw logging on
-ufw enable
+echo "y" | ufw enable
 
 # Secure SSH
 echo "Securing SSH..."
@@ -71,7 +76,7 @@ echo "Setting up Fail2Ban..."
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 sed -i '/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = 422/g' /etc/fail2ban/jail.local
 systemctl enable fail2ban
-systemctl start fail2ban
+systemctl restart fail2ban
 
 echo "Removing unnecessary packages..."
 apt autoremove -y
