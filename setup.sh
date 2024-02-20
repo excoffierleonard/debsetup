@@ -19,11 +19,6 @@ echo "You have selected port $SSH_PORT for SSH"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Backups
-echo "Backing up config files..."
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
-
 # Update and Upgrade
 echo "Updating and upgrading your system..."
 apt update && apt full-upgrade -y
@@ -63,6 +58,11 @@ rm get-docker.sh
 echo "Installing QEMU, KVM, libvirt and virtinst..."
 apt install -y --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system
 apt install -y virtinst
+
+# Backups
+echo "Backing up config files..."
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
 
 # Setup UFW (Uncomplicated Firewall)
 echo "Setting up UFW..."
