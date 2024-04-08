@@ -28,12 +28,28 @@ echo "Installing basic tools..."
 apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree neofetch cpufetch zsh
 
 # Add Neofetch to /etc/bash.bashrc with a conditional statement
-echo "Setting up Neofetch"
+echo "Setting up Neofetch..."
 echo '
 # Display Neofetch output for non-root users
 if [ "$(id -u)" != "0" ]; then
     echo ""  # Add a blank line for better formatting
     neofetch
+fi
+' | sudo tee -a /etc/bash.bashrc >/dev/null
+
+# Add update check
+echo "Adding update checking..." 
+echo '
+# Check for system updates for non-root users
+if [ "$(id -u)" != "0" ]; then
+    echo "Checking for system updates..."
+    apt update &>/dev/null
+    UPDATES_AVAILABLE=$(apt list --upgradable 2>/dev/null | wc -l)
+    if [ "$UPDATES_AVAILABLE" -gt 1 ]; then
+        echo "Updates available: $(($UPDATES_AVAILABLE-1))"
+    else 
+        echo "Your system is up to date."
+    fi
 fi
 ' | sudo tee -a /etc/bash.bashrc >/dev/null
 
