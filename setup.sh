@@ -32,10 +32,16 @@ echo "Setting up Neofetch..."
 echo '
 # Display Neofetch output for non-root users
 if [ "$(id -u)" != "0" ]; then
-    echo ""  # Add a blank line for better formatting
+    echo ""
     neofetch
 fi
 ' | sudo tee -a /etc/bash.bashrc >/dev/null
+
+echo "Configuring no-password sudo for 'apt update' command..."
+echo "
+# Allow all users in 'sudo' group to run 'apt update' without a password
+%sudo ALL=(ALL) NOPASSWD: /usr/bin/apt update
+" | sudo EDITOR='tee -a' visudo >/dev/null
 
 # Add update check
 echo "Adding update checking..." 
@@ -43,7 +49,7 @@ echo '
 # Check for system updates for non-root users
 if [ "$(id -u)" != "0" ]; then
     echo "Checking for system updates..."
-    apt update &>/dev/null
+    sudo apt update &>/dev/null
     UPDATES_AVAILABLE=$(apt list --upgradable 2>/dev/null | wc -l)
     if [ "$UPDATES_AVAILABLE" -gt 1 ]; then
         echo "Updates available: $(($UPDATES_AVAILABLE-1))"
