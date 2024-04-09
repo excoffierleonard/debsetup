@@ -39,17 +39,17 @@ fi
 
 echo "Configuring no-password sudo for 'apt update' command..."
 echo "
-# Allow all users in 'sudo' group to run 'apt update' without a password
 %sudo ALL=(ALL) NOPASSWD: /usr/bin/apt update
 " | sudo EDITOR='tee -a' visudo >/dev/null
 
-# Add update check
 echo "Adding update checking..." 
 echo '
-# Check for system updates for non-root users
 if [ "$(id -u)" != "0" ]; then
     echo "Checking for system updates..."
-    sudo apt update &>/dev/null
+    if id -nG "$USER" | grep -qw "sudo\|admin"; then
+        sudo apt update &>/dev/null
+        echo "Packages list updated."
+    fi
     UPDATES_AVAILABLE=$(apt list --upgradable 2>/dev/null | wc -l)
     if [ "$UPDATES_AVAILABLE" -gt 1 ]; then
         echo "Updates available: $(($UPDATES_AVAILABLE-1))"
