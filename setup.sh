@@ -44,6 +44,7 @@ echo "
 
 echo "Adding update checking..." 
 echo '
+# Check for system updates for non-root users
 if [ "$(id -u)" != "0" ]; then
     echo "Checking for system updates..."
     if id -nG "$USER" | grep -qw "sudo\|admin"; then
