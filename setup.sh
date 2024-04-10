@@ -63,7 +63,7 @@ fi
 # Install ZFS
 echo "Installing ZFS..." 
 apt install -y linux-headers-amd64
-codename=$(lsb_release -cs);echo "deb http://deb.debian.org/debian $codename-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && sudo apt update
+codename=$(lsb_release -cs);echo "deb http://deb.debian.org/debian $codename-backports main contrib non-free"|sudo tee -a /etc/apt/sources.list && sudo apt update -y
 apt install -y -t stable-backports zfsutils-linux
 
 # Install Duplicacy
@@ -97,7 +97,7 @@ echo "y" | ufw enable
 
 # Secure SSH
 echo "Securing SSH..."
-sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config # Change SSH port to 422
+sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config # Change SSH port
 sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
 systemctl restart ssh
 
