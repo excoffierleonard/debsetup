@@ -44,16 +44,16 @@ echo "
 
 echo "Adding update checking..." 
 echo '
-# Check for system updates for non-root users
+# Check for system upgrades for non-root users
 if [ "$(id -u)" != "0" ]; then
     echo "Checking for system updates..."
     if id -nG "$USER" | grep -qw "sudo\|admin"; then
         sudo apt update &>/dev/null
         echo "Packages list updated."
     fi
-    UPDATES_AVAILABLE=$(apt list --upgradable 2>/dev/null | wc -l)
-    if [ "$UPDATES_AVAILABLE" -gt 1 ]; then
-        echo "Updates available: $(($UPDATES_AVAILABLE-1))"
+    UPGRADES_AVAILABLE=$(apt list --upgradable 2>/dev/null | wc -l)
+    if [ "$UPGRADES_AVAILABLE" -gt 1 ]; then
+        echo "Upgrades available: $(($UPGRADES_AVAILABLE-1))"
     else 
         echo "Your system is up to date."
     fi
