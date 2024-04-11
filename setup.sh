@@ -58,7 +58,7 @@ if [ "$(id -u)" != "0" ]; then
         echo "Your system is up to date."
     fi
 fi
-' | sudo tee -a /etc/bash.bashrc >/dev/null
+' | sudo tee -a /etc/profile >/dev/null
 
 # Install ZFS
 echo "Installing ZFS..." 
