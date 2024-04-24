@@ -75,12 +75,12 @@ sed -i '/^#net.ipv4.ip_forward=1/s/^#//' /etc/sysctl.conf
 sysctl -p
 
 ip link add dev wg0 type wireguard
-ip address add dev wg0 192.168.6.1/24
+ip address add dev wg0 10.0.2.1/24
 wg set wg0 private-key /etc/wireguard/privatekey
 wg set wg0 listen-port 61820
 
 wg showconf wg0 > /etc/wireguard/wg0.conf
-echo "Address=192.168.6.1/24" >> /etc/wireguard/wg0.conf
+echo "Address=10.0.2.1/24" >> /etc/wireguard/wg0.conf
 echo "SaveConfig = true" >> /etc/wireguard/wg0.conf
 
 echo "PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
