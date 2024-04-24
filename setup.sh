@@ -17,6 +17,11 @@ echo "Enter the SSH port you wish to use:"
 read SSH_PORT
 echo "You have selected port $SSH_PORT for SSH"
 
+# Choose network interface that connects to WAN
+echo "Enter the WAN interface name (usually the #2 when entering [ip a]):"
+read OUR_INTERFACE
+echo "You have selected $OUR_INTERFACE as a WAN facing interface"
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Update and Upgrade
@@ -60,6 +65,31 @@ if [ "$(id -u)" != "0" ]; then
 fi
 ' | sudo tee -a /etc/profile >/dev/null
 
+# Wireguard Setup
+echo "Setting up Wireguard"
+umask 077
+wg genkey > /etc/wireguard/privatekey
+wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
+
+sed -i '/^#net.ipv4.ip_forward=1/s/^#//' /etc/sysctl.conf
+sysctl -p
+
+ip link add dev wg0 type wireguard
+ip address add dev wg0 192.168.6.1/24
+wg set wg0 private-key /etc/wireguard/privatekey
+wg set wg0 listen-port 61820
+
+wg showconf wg0 > /etc/wireguard/wg0.conf
+echo "Address=192.168.6.1/24" >> /etc/wireguard/wg0.conf
+echo "SaveConfig = true" >> /etc/wireguard/wg0.conf
+
+echo "PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
+echo "PostDOWN = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
+
+systemctl enable wg-quick@wg0.service
+
+umask 022
+
 # Install ZFS
 echo "Installing ZFS..." 
 apt install -y linux-headers-amd64
@@ -90,6 +120,7 @@ cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
 # Setup UFW (Uncomplicated Firewall)
 echo "Setting up UFW..."
 ufw allow $SSH_PORT/tcp
+ufw allow 61820/udp
 ufw default deny incoming
 ufw default allow outgoing
 ufw logging on
