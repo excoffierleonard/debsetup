@@ -33,7 +33,7 @@ NEW_PRIV_KEY=$(wg genkey)
 NEW_PUB_KEY=$(echo $NEW_PRIV_KEY | wg pubkey)
 
 # Append new peer configuration to wg0.conf
-echo -e "\n[Peer]\nPublicKey = $NEW_PUB_KEY\nAllowedIPs = $NEW_IP" >> $WG_CONFIG
+echo "\n[Peer]\nPublicKey = $NEW_PUB_KEY\nAllowedIPs = $NEW_IP" >> $WG_CONFIG
 
 # Record peer details externally
 echo "Peer Name: $PEER_NAME, PublicKey: $NEW_PUB_KEY, IP: $NEW_IP" >> $PEER_RECORDS
