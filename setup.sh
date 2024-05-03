@@ -155,7 +155,7 @@ echo "$NEW_PEER_CONFIG" | qrencode -o - -t UTF8
 wg-quick up wg0 > /dev/null 2>&1
 
 echo ""
-echo "New WireGuard peer '\$1' added, and configuration QR code generated."
+echo "New WireGuard peer [$1] added, and configuration QR code generated."
 ' | sudo tee -a /etc/wireguard/newpeer.sh >/dev/null
 
 
