@@ -97,6 +97,7 @@ umask 022
 
 # Get newpeer.sh script
 curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh?inline=false
+sed -i "s/ENDPOINT_PLACEHOLDER/$ENDPOINT/g" /etc/wireguard/newpeer.sh
 
 # Install ZFS
 echo "Installing ZFS..." 
