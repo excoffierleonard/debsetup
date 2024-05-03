@@ -95,6 +95,9 @@ systemctl enable wg-quick@wg0.service
 
 umask 022
 
+# Get newpeer.sh script
+curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh?inline=false
+
 # Install ZFS
 echo "Installing ZFS..." 
 apt install -y linux-headers-amd64
