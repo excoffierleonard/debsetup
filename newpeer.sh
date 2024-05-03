@@ -8,7 +8,6 @@ then
 fi
 
 PEER_NAME=$1
-ENDPOINT=$2
 
 wg-quick down wg0 > /dev/null 2>&1
 
@@ -46,7 +45,7 @@ Address = $NEW_IP
 DNS = 1.1.1.1
 [Peer]
 PublicKey = $VPS_PUBLIC_KEY
-Endpoint = $ENPOINT:61820
+Endpoint="ENDPOINT_PLACEHOLDER:61820"
 AllowedIPs = 0.0.0.0/0"
 
 echo ""
