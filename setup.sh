@@ -35,7 +35,13 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf eza
+
+#fzf and eza setup
+echo '[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash' | sudo tee -a /etc/bash.bashrc >/dev/null
+
+#Make sure that works for all users:
+echo 'alias ls="exa -alh --group-directories-first"' | sudo tee -a /etc/bash.bashrc >/dev/null
 
 # Add Neofetch to /etc/bash.bashrc with a conditional statement
 echo "Setting up Neofetch..."
