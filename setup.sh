@@ -35,7 +35,7 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop ncdu iftop rclone rsync tree neofetch cpufetch zsh
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh
 
 # Add Neofetch to /etc/bash.bashrc with a conditional statement
 echo "Setting up Neofetch..."
