@@ -37,6 +37,9 @@ apt update && apt full-upgrade -y
 echo "Installing basic tools..."
 apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf eza
 
+# Make zsh default shell
+chsh -s /bin/zsh
+
 #fzf and eza setup
 echo '[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash' | sudo tee -a /etc/bash.bashrc >/dev/null
 
