@@ -1,19 +1,24 @@
-echo ""
-neofetch
-
-# Set up coloring
+# Enable colors
 autoload -U colors && colors
 
-# Customize the command prompt
-PROMPT="%{$fg_bold[green]%}%n%{$reset_color%}@%{$fg_bold[green]%}%M %{$fg_bold[blue]%}%~ %{$reset_col$
+# Set the prompt space pretty
+PROMPT="%{$fg_bold[green]%}%n%{$reset_color%}@%{$fg_bold[green]%}%M %{$fg_bold[blue]%}%~ %{$reset_color%}%# "
 
-alias ls="eza -alh --group-directories-first"
-
+# Setup zsh autocompletion
 autoload -Uz compinit
 compinit
 
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Setup zsh
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# Setup fzf
+source /usr/share/doc/fzf/examples/key-bindings.zsh
+source /usr/share/doc/fzf/examples/completion.zsh
 
-eval "$(fzf --zsh)"
+# Make the ls command better
+alias ls="exa -alh --group-directories-first"
+
+# Execute Neofetch at startup
+echo ""
+neofetch
