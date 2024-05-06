@@ -38,6 +38,8 @@ if [ -z "$WIREGUARD_PORT" ]; then
 fi
 echo "You have selected port $WIREGUARD_PORT for Wireguard"
 
+# Begining of Setup
+echo "Begining of Setup..."
 export DEBIAN_FRONTEND=noninteractive
 
 # Update and Upgrade
@@ -49,29 +51,27 @@ echo "Installing basic tools..."
 apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa
 
 # Make zsh default shell and place .zshrc in common location
+echo "Setting up zsh..."
 curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
 chmod 644 /etc/skel/.zshrc
 chsh -s /bin/zsh
 
 # Wireguard Setup
-echo "Setting up Wireguard"
+echo "Setting up Wireguard..."
 umask 077
 wg genkey > /etc/wireguard/privatekey
 wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
-
 sed -i "s|PRIVATE_KEY|$(cat /etc/wireguard/privatekey)|g" /etc/wireguard/wg0.conf
 sed -i "s|WAN_INTERFACE|$WAN_INTERFACE|g" /etc/wireguard/wg0.conf
 sed -i "s|WIREGUARD_PORT|$WIREGUARD_PORT|g" /etc/wireguard/wg0.conf
-
 sed -i '/^#net.ipv4.ip_forward=1/s/^#//' /etc/sysctl.conf
 sysctl -p
-
 wg-quick up wg0
 systemctl enable wg-quick@wg0.service
-
 umask 022
 
 # Get newpeer.sh script
+echo "Downloading and setting up the newpeer.sh script for Wireguard..."
 curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh?inline=false
 sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
 sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
