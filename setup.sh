@@ -22,6 +22,15 @@ echo "Enter the public IP adress / Domain Name pointing to that IP, of the serve
 read ENDPOINT
 echo "You have selected $ENDPOINT as the server WAN's Endpoint"
 
+# Choose Hostname
+current_hostname=$(hostname)
+echo "Enter system Hostname you wish to use (press Enter to keep $current_hostname):"
+read HOSTNAME
+if [ -z "$HOSTNAME" ]; then
+    HOSTNAME=$current_hostname
+fi
+echo "You have selected $HOSTNAME as the server Hostname"
+
 # Choose SSH port
 echo "Enter the SSH port you wish to use (default 22):"
 read SSH_PORT
@@ -46,6 +55,10 @@ export DEBIAN_FRONTEND=noninteractive
 echo "Updating and upgrading your system..."
 apt update && apt full-upgrade -y
 
+# Change the system hostname
+echo "Changing the system hostname..."
+hostnamectl set-hostname "$HOSTNAME"
+
 # Install basic tools
 echo "Installing basic tools..."
 apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr
@@ -56,6 +69,15 @@ apt install -y zsh-syntax-highlighting zsh-autosuggestions
 curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
 chmod 644 /etc/skel/.zshrc
 chsh -s /bin/zsh
+
+# Changing login page formating, removing defaults modtds
+echo "Changing login page formating, removing defaults modtds..."
+cp /etc/issue /etc/issue.backup
+cp /etc/motd /etc/motd.backup
+tar -czf /etc/update-motd.d_backup.tar.gz /etc/update-motd.d
+echo -n "" > /etc/issue
+echo -n "" > /etc/motd
+chmod -x /etc/update-motd.d/*
 
 # Wireguard Setup
 echo "Setting up Wireguard..."
