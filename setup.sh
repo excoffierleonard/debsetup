@@ -7,13 +7,13 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Checks for Internet Connectivity
-if ! ping -c1 google.com &>/dev/null; then
+if ! ping -c1 1.1.1.1 &>/dev/null; then
     echo "No internet connection detected. Please check your network."
     exit 1
 fi
 
 # Get the network interface used for internet connectivity
-DEFAULT_ROUTE=$(ip route get 8.8.8.8)
+DEFAULT_ROUTE=$(ip route get 1.1.1.1)
 WAN_INTERFACE=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
 echo "Detected $WAN_INTERFACE as the WAN facing interface"
 
