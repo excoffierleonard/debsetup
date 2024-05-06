@@ -12,25 +12,31 @@ if ! ping -c1 google.com &>/dev/null; then
     exit 1
 fi
 
+# Get the network interface used for internet connectivity
+DEFAULT_ROUTE=$(ip route get 8.8.8.8)
+WAN_INTERFACE=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
+echo "Detected $WAN_INTERFACE as the WAN facing interface"
+
+# Choose the WAN Endpoint of the server
+echo "Enter the public IP adress / Domain Name pointing to that IP, of the server:"
+read ENDPOINT
+echo "You have selected $ENDPOINT as the server WAN's Endpoint"
+
 # Choose SSH port
-echo "Enter the SSH port you wish to use:"
+echo "Enter the SSH port you wish to use (default 22):"
 read SSH_PORT
+if [ -z "$SSH_PORT" ]; then
+    SSH_PORT=22
+fi
 echo "You have selected port $SSH_PORT for SSH"
 
 # Choose Wireguard VPN port
-echo "Enter the Wireguard VPN port you wish to use:"
+echo "Enter the Wireguard VPN port you wish to use (default 51820):"
 read WIREGUARD_PORT
-echo "You have selected port $WIREGUARD_PORT for SSH"
-
-# Choose network interface that connects to WAN
-echo "Enter the WAN interface name (usually the #2 when entering [ip a]):"
-read WAN_INTERFACE
-echo "You have selected $WAN_INTERFACE as a WAN facing interface"
-
-# Choose the WAN Endpoint of the server
-echo "Enter the public IP adress / domain name of the server:"
-read ENDPOINT
-echo "You have selected $ENDPOINT as the server WAN's Endpoint"
+if [ -z "$WIREGUARD_PORT" ]; then
+    WIREGUARD_PORT=51820
+fi
+echo "You have selected port $WIREGUARD_PORT for Wireguard"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -53,9 +59,9 @@ umask 077
 wg genkey > /etc/wireguard/privatekey
 wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
 
-sed -i "s|PRIVATE_KEY|$(cat /etc/wireguard/privatekey)|" /etc/wireguard/wg0.conf
-sed -i "s|WAN_INTERFACE|$WAN_INTERFACE|" /etc/wireguard/wg0.conf
-sed -i "s|WIREGUARD_PORT|$WIREGUARD_PORT" /etc/wireguard/wg0.conf
+sed -i "s|PRIVATE_KEY|$(cat /etc/wireguard/privatekey)|g" /etc/wireguard/wg0.conf
+sed -i "s|WAN_INTERFACE|$WAN_INTERFACE|g" /etc/wireguard/wg0.conf
+sed -i "s|WIREGUARD_PORT|$WIREGUARD_PORT|g" /etc/wireguard/wg0.conf
 
 sed -i '/^#net.ipv4.ip_forward=1/s/^#//' /etc/sysctl.conf
 sysctl -p
