@@ -22,7 +22,7 @@ echo "Enter the WAN interface name (usually the #2 when entering [ip a]):"
 read OUR_INTERFACE
 echo "You have selected $OUR_INTERFACE as a WAN facing interface"
 
-# Choose
+# Choose the WAN Endpoint of the server
 echo "Enter the public IP adress / domain name of the server:"
 read ENDPOINT
 echo "You have selected $ENDPOINT as the server WAN's Endpoint"
@@ -35,49 +35,10 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf eza
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa
 
 # Make zsh default shell
 chsh -s /bin/zsh
-
-#fzf and eza setup
-echo '[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash' | sudo tee -a /etc/bash.bashrc >/dev/null
-
-#Make sure that works for all users:
-echo 'alias ls="exa -alh --group-directories-first"' | sudo tee -a /etc/bash.bashrc >/dev/null
-
-# Add Neofetch to /etc/bash.bashrc with a conditional statement
-echo "Setting up Neofetch..."
-echo '
-# Display Neofetch output for non-root users
-if [ "$(id -u)" != "0" ]; then
-    echo ""
-    neofetch
-fi
-' | sudo tee -a /etc/bash.bashrc >/dev/null
-
-echo "Configuring no-password sudo for 'apt update' command..."
-echo "
-%sudo ALL=(ALL) NOPASSWD: /usr/bin/apt update
-" | sudo EDITOR='tee -a' visudo >/dev/null
-
-echo "Adding update checking..." 
-echo '
-# Check for system upgrades for non-root users
-if [ "$(id -u)" != "0" ]; then
-    echo "Checking for system updates..."
-    if id -nG "$USER" | grep -qw "sudo\|admin"; then
-        sudo apt update &>/dev/null
-        echo "Packages list updated."
-    fi
-    UPGRADES_AVAILABLE=$(apt list --upgradable 2>/dev/null | wc -l)
-    if [ "$UPGRADES_AVAILABLE" -gt 1 ]; then
-        echo "Upgrades available: $(($UPGRADES_AVAILABLE-1))"
-    else 
-        echo "Your system is up to date."
-    fi
-fi
-' | sudo tee -a /etc/profile >/dev/null
 
 # Wireguard Setup
 echo "Setting up Wireguard"
