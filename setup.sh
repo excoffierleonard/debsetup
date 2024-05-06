@@ -17,6 +17,11 @@ echo "Enter the SSH port you wish to use:"
 read SSH_PORT
 echo "You have selected port $SSH_PORT for SSH"
 
+# Choose Wireguard VPN port
+echo "Enter the Wireguard VPN port you wish to use:"
+read WIREGUARD_PORT
+echo "You have selected port $WIREGUARD_PORT for SSH"
+
 # Choose network interface that connects to WAN
 echo "Enter the WAN interface name (usually the #2 when entering [ip a]):"
 read WAN_INTERFACE
@@ -50,6 +55,7 @@ wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
 
 sed -i "s|PRIVATE_KEY|$(cat /etc/wireguard/privatekey)|" /etc/wireguard/wg0.conf
 sed -i "s|WAN_INTERFACE|$WAN_INTERFACE|" /etc/wireguard/wg0.conf
+sed -i "s|WIREGUARD_PORT|$WIREGUARD_PORT" /etc/wireguard/wg0.conf
 
 sed -i '/^#net.ipv4.ip_forward=1/s/^#//' /etc/sysctl.conf
 sysctl -p
@@ -62,6 +68,7 @@ umask 022
 # Get newpeer.sh script
 curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh?inline=false
 sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
+sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
 
 # Install ZFS
 echo "Installing ZFS..." 
@@ -93,7 +100,7 @@ cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
 # Setup UFW (Uncomplicated Firewall)
 echo "Setting up UFW..."
 ufw allow $SSH_PORT/tcp
-ufw allow 61820/udp
+ufw allow $WIREGUARD_PORT/udp
 ufw default deny incoming
 ufw default allow outgoing
 ufw logging on
