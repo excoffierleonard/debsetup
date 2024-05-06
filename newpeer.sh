@@ -45,7 +45,7 @@ Address = $NEW_IP
 DNS = 1.1.1.1
 [Peer]
 PublicKey = $VPS_PUBLIC_KEY
-Endpoint = ENDPOINT:61820
+Endpoint = ENDPOINT:WIREGUARD_PORT
 AllowedIPs = 0.0.0.0/0"
 
 echo ""
