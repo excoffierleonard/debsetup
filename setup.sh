@@ -48,27 +48,20 @@ umask 077
 wg genkey > /etc/wireguard/privatekey
 wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
 
+sed -i "s|PRIVATE_KEY|$(cat /etc/wireguard/privatekey)|" /etc/wireguard/wg0.conf
+sed -i "s|WAN_INTERFACE|$WAN_INTERFACE|" /etc/wireguard/wg0.conf
+
 sed -i '/^#net.ipv4.ip_forward=1/s/^#//' /etc/sysctl.conf
 sysctl -p
 
-ip link add dev wg0 type wireguard
-ip address add dev wg0 10.0.2.1/24
-wg set wg0 private-key /etc/wireguard/privatekey
-wg set wg0 listen-port 61820
-
-wg showconf wg0 > /etc/wireguard/wg0.conf
-echo "Address=10.0.2.1/24" >> /etc/wireguard/wg0.conf
-echo "SaveConfig = true" >> /etc/wireguard/wg0.conf
-echo "PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $WAN_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
-echo "PostDOWN = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $WAN_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
-
+wg-quick up wg0
 systemctl enable wg-quick@wg0.service
 
 umask 022
 
 # Get newpeer.sh script
 curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh?inline=false
-sed -i "s/ENDPOINT_PLACEHOLDER/$ENDPOINT/g" /etc/wireguard/newpeer.sh
+sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
 
 # Install ZFS
 echo "Installing ZFS..." 
