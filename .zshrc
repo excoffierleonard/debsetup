@@ -19,6 +19,12 @@ source /usr/share/doc/fzf/examples/completion.zsh
 # Make the ls command better
 alias ls="exa -alh --group-directories-first"
 
+# Keep 5000 lines of history within the shell and save it to ~/.zsh_history:
+HISTSIZE=5000
+SAVEHIST=5000
+HISTFILE=~/.zsh_history
+setopt histignorealldups sharehistory
+
 # Execute Neofetch at startup
 echo ""
 neofetch
