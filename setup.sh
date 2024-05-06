@@ -12,14 +12,23 @@ if ! ping -c1 1.1.1.1 &>/dev/null; then
     exit 1
 fi
 
-# Get the network interface used for internet connectivity
+# Choose the network interface used for internet connectivity
 DEFAULT_ROUTE=$(ip route get 1.1.1.1)
-WAN_INTERFACE=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
-echo "Detected $WAN_INTERFACE as the WAN facing interface"
+WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
+echo "Enter the WAN Interface you would like to use (press enter to choose $WAN_INTERFACE_DEFAULT):"
+read WAN_INTERFACE
+if [ -z "$WAN_INTERFACE" ]; then
+    WAN_INTERFACE=$WAN_INTERFACE_DEFAULT
+fi
+echo "You have selected $WAN_INTERFACE as the server WAN's Interface"
 
 # Choose the WAN Endpoint of the server
-echo "Enter the public IP adress / Domain Name pointing to that IP, of the server:"
+public_ip=$(curl -s http://ipinfo.io/ip)
+echo "Enter the public IP adress / Domain Name, of the server (press Enter to choose $public_ip):"
 read ENDPOINT
+if [ -z "$ENDPOINT" ]; then
+    ENDPOINT=$public_ip
+fi
 echo "You have selected $ENDPOINT as the server WAN's Endpoint"
 
 # Choose Hostname
