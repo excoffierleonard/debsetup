@@ -52,6 +52,7 @@ apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux b
 
 # Make zsh default shell and place .zshrc in common location
 echo "Setting up zsh..."
+apt install zsh-syntax-highlighting zsh-autosuggestions
 curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
 chmod 644 /etc/skel/.zshrc
 chsh -s /bin/zsh
