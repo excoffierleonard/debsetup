@@ -48,7 +48,7 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr
 
 # Make zsh default shell and place .zshrc in common location
 echo "Setting up zsh..."
