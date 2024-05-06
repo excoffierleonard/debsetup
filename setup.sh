@@ -38,8 +38,9 @@ echo "Installing basic tools..."
 apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa
 
 # Make zsh default shell and place .zshrc in common location
-chsh -s /bin/zsh
 curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
+chmod 644 /etc/skel/.zshrc
+chsh -s /bin/zsh
 
 # Wireguard Setup
 echo "Setting up Wireguard"
