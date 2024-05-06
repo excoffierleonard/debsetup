@@ -65,5 +65,4 @@ echo "$NEW_PEER_CONFIG" > $PEER_CONFIG_FILE
 wg-quick up wg0 > /dev/null 2>&1
 
 echo ""
-echo "New WireGuard peer '"$1"' added, private key stored securely, and configuration QR code generated."
-echo "Configuration file for PC saved as ${PEER_CONFIG_FILE}"
+echo "New WireGuard peer '"$1"' added, configuration QR code generated, and .conf file stored at ${PEER_CONFIG_FILE}."
