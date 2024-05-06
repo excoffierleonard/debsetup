@@ -15,7 +15,7 @@ fi
 # Choose the network interface used for internet connectivity
 DEFAULT_ROUTE=$(ip route get 1.1.1.1)
 WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
-echo "Enter the WAN Interface you would like to use (press enter to choose $WAN_INTERFACE_DEFAULT):"
+echo "Enter the WAN Interface you would like to use (press Enter to choose $WAN_INTERFACE_DEFAULT):"
 read WAN_INTERFACE
 if [ -z "$WAN_INTERFACE" ]; then
     WAN_INTERFACE=$WAN_INTERFACE_DEFAULT
@@ -23,7 +23,7 @@ fi
 echo "You have selected $WAN_INTERFACE as the server WAN's Interface"
 
 # Choose the WAN Endpoint of the server
-public_ip=$(curl -s http://ipinfo.io/ip)
+public_ip=$(wget -qO- http://ipinfo.io/ip)
 echo "Enter the public IP adress / Domain Name, of the server (press Enter to choose $public_ip):"
 read ENDPOINT
 if [ -z "$ENDPOINT" ]; then
@@ -33,7 +33,7 @@ echo "You have selected $ENDPOINT as the server WAN's Endpoint"
 
 # Choose Hostname
 current_hostname=$(hostname)
-echo "Enter system Hostname you wish to use (press Enter to keep $current_hostname):"
+echo "Enter system Hostname you wish to use (press Enter to choose $current_hostname):"
 read HOSTNAME
 if [ -z "$HOSTNAME" ]; then
     HOSTNAME=$current_hostname
@@ -41,7 +41,7 @@ fi
 echo "You have selected $HOSTNAME as the server Hostname"
 
 # Choose SSH port
-echo "Enter the SSH port you wish to use (default 22):"
+echo "Enter the SSH port you wish to use (press Enter to choose 22):"
 read SSH_PORT
 if [ -z "$SSH_PORT" ]; then
     SSH_PORT=22
@@ -49,7 +49,7 @@ fi
 echo "You have selected port $SSH_PORT for SSH"
 
 # Choose Wireguard VPN port
-echo "Enter the Wireguard VPN port you wish to use (default 51820):"
+echo "Enter the Wireguard VPN port you wish to use (press Enter to choose 51820):"
 read WIREGUARD_PORT
 if [ -z "$WIREGUARD_PORT" ]; then
     WIREGUARD_PORT=51820
