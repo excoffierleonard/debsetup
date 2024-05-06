@@ -35,10 +35,11 @@ apt update && apt full-upgrade -y
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux htop btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa
 
-# Make zsh default shell
+# Make zsh default shell and place .zshrc in common location
 chsh -s /bin/zsh
+curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
 
 # Wireguard Setup
 echo "Setting up Wireguard"
@@ -57,7 +58,6 @@ wg set wg0 listen-port 61820
 wg showconf wg0 > /etc/wireguard/wg0.conf
 echo "Address=10.0.2.1/24" >> /etc/wireguard/wg0.conf
 echo "SaveConfig = true" >> /etc/wireguard/wg0.conf
-
 echo "PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
 echo "PostDOWN = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
 
