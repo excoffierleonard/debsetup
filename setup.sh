@@ -19,8 +19,8 @@ echo "You have selected port $SSH_PORT for SSH"
 
 # Choose network interface that connects to WAN
 echo "Enter the WAN interface name (usually the #2 when entering [ip a]):"
-read OUR_INTERFACE
-echo "You have selected $OUR_INTERFACE as a WAN facing interface"
+read WAN_INTERFACE
+echo "You have selected $WAN_INTERFACE as a WAN facing interface"
 
 # Choose the WAN Endpoint of the server
 echo "Enter the public IP adress / domain name of the server:"
@@ -59,8 +59,8 @@ wg set wg0 listen-port 61820
 wg showconf wg0 > /etc/wireguard/wg0.conf
 echo "Address=10.0.2.1/24" >> /etc/wireguard/wg0.conf
 echo "SaveConfig = true" >> /etc/wireguard/wg0.conf
-echo "PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
-echo "PostDOWN = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $OUR_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
+echo "PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o $WAN_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
+echo "PostDOWN = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o $WAN_INTERFACE -j MASQUERADE" >> /etc/wireguard/wg0.conf
 
 systemctl enable wg-quick@wg0.service
 
