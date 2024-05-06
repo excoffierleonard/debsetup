@@ -11,7 +11,7 @@ PEER_NAME=$1
 
 wg-quick down wg0 > /dev/null 2>&1
 
-# Paths to the WireGuard configuration and public key file
+# Paths to the WireGuard configuration, public key file, and peer records
 WG_CONFIG="/etc/wireguard/wg0.conf"
 VPS_PUBLIC_KEY_FILE="/etc/wireguard/publickey"
 PEER_RECORDS="/etc/wireguard/peer_records.txt"
@@ -35,8 +35,12 @@ NEW_PUB_KEY=$(echo $NEW_PRIV_KEY | wg pubkey)
 # Append new peer configuration to wg0.conf
 echo "\n[Peer]\nPublicKey = $NEW_PUB_KEY\nAllowedIPs = $NEW_IP" >> $WG_CONFIG
 
-# Record peer details externally
-echo "Peer Name: $PEER_NAME, PublicKey: $NEW_PUB_KEY, IP: $NEW_IP" >> $PEER_RECORDS
+# Record peer details with private key externally
+echo "Peer Name: $PEER_NAME, PublicKey: $NEW_PUB_KEY, PrivateKey: $NEW_PRIV_KEY, IP: $NEW_IP" >> $PEER_RECORDS
+
+# Change the permissions of peer_records.txt to be read-only by root
+chmod 600 $PEER_RECORDS
+chown root:root $PEER_RECORDS
 
 # Generate QR code for the new peer setup
 NEW_PEER_CONFIG="[Interface]
@@ -55,4 +59,4 @@ echo "$NEW_PEER_CONFIG" | qrencode -o - -t UTF8
 wg-quick up wg0 > /dev/null 2>&1
 
 echo ""
-echo "New WireGuard peer '"$1"' added, and configuration QR code generated."
+echo "New WireGuard peer '"$1"' added, private key stored securely, and configuration QR code generated."
