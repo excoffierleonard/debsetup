@@ -8,6 +8,7 @@ then
 fi
 
 PEER_NAME=$1
+PEER_CONFIG_FILE="/etc/wireguard/peers/${PEER_NAME}.conf"
 
 wg-quick down wg0 > /dev/null 2>&1
 
@@ -15,6 +16,9 @@ wg-quick down wg0 > /dev/null 2>&1
 WG_CONFIG="/etc/wireguard/wg0.conf"
 VPS_PUBLIC_KEY_FILE="/etc/wireguard/publickey"
 PEER_RECORDS="/etc/wireguard/peer_records.txt"
+
+# Ensure peer configurations directory exists
+mkdir -p /etc/wireguard/peers
 
 # Fetch the VPS public key
 VPS_PUBLIC_KEY=$(cat $VPS_PUBLIC_KEY_FILE)
@@ -52,11 +56,14 @@ PublicKey = $VPS_PUBLIC_KEY
 Endpoint = ENDPOINT:WIREGUARD_PORT
 AllowedIPs = 0.0.0.0/0"
 
-echo ""
 echo "$NEW_PEER_CONFIG" | qrencode -o - -t UTF8
+
+# Save the configuration to a file for PC usage
+echo "$NEW_PEER_CONFIG" > $PEER_CONFIG_FILE
 
 # Restart WireGuard to apply changes
 wg-quick up wg0 > /dev/null 2>&1
 
 echo ""
 echo "New WireGuard peer '"$1"' added, private key stored securely, and configuration QR code generated."
+echo "Configuration file for PC saved as ${PEER_CONFIG_FILE}"
