@@ -70,7 +70,7 @@ hostnamectl set-hostname "$HOSTNAME"
 
 # Install basic tools
 echo "Installing basic tools..."
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr ripgrep
 
 # Make zsh default shell and place .zshrc in common location
 echo "Setting up zsh..."
