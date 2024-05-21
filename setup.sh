@@ -157,6 +157,11 @@ sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban
 systemctl enable fail2ban
 systemctl restart fail2ban
 
+# Change time zone
+echo "Changing time zone to EST"
+sudo timedatectl set-timezone America/New_York
+echo "Time zone changed to EST"
+
 echo "Removing unnecessary packages..."
 apt autoremove -y
 
