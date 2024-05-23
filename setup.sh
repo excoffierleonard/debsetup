@@ -14,7 +14,7 @@ fi
 
 # Choose the network interface used for internet connectivity
 DEFAULT_ROUTE=$(ip route get 1.1.1.1)
-WAN_INTERFACE_DEFAULT=$(echo "$DEFAULT_ROUTE" | grep -oP 'dev \K\S+')
+WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
 echo "Enter the WAN Interface you would like to use (press Enter to choose $WAN_INTERFACE_DEFAULT):"
 read WAN_INTERFACE
 if [ -z "$WAN_INTERFACE" ]; then
