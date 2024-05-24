@@ -25,6 +25,10 @@ VPS_PUBLIC_KEY=$(cat $VPS_PUBLIC_KEY_FILE)
 
 # Extract the last used IP address, find the highest, and calculate the next IP
 LAST_IP_HEX=$(grep "AllowedIPs" $WG_CONFIG | awk '{print $NF}' | cut -d '/' -f 1 | awk -F "." '{ printf "0x%02X%02X%02X%02X\n", $1,$2,$3,$4 }' | sort -u | tail -1)
+# If no last IP address is found, use the Address parameter from the [Interface] section
+if [ -z "$LAST_IP_HEX" ]; then
+    LAST_IP_HEX=$(grep "Address" $WG_CONFIG | awk '{print $NF}' | cut -d '/' -f 1 | awk -F "." '{ printf "0x%02X%02X%02X%02X\n", $1,$2,$3,$4 }')
+fi
 LAST_IP_DEC=$((LAST_IP_HEX))
 NEXT_IP_DEC=$(($LAST_IP_DEC + 1))
 NEXT_IP=$(printf "%d.%d.%d.%d" $(($NEXT_IP_DEC>>24&255)) $(($NEXT_IP_DEC>>16&255)) $(($NEXT_IP_DEC>>8&255)) $(($NEXT_IP_DEC&255)))
