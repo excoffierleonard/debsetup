@@ -77,6 +77,7 @@ echo "Setting up zsh..."
 apt install -y zsh-syntax-highlighting zsh-autosuggestions
 curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
 chmod 644 /etc/skel/.zshrc
+cp /etc/skel/.zshrc /root/
 chsh -s /bin/zsh
 
 # Changing login page formating, removing defaults modtds
