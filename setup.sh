@@ -90,6 +90,7 @@ chmod -x /etc/update-motd.d/*
 
 # Wireguard Setup
 echo "Setting up Wireguard..."
+curl -o /etc/wireguard/wg0.conf https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf?inline=false
 umask 077
 wg genkey > /etc/wireguard/privatekey
 wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
