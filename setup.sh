@@ -91,7 +91,7 @@ chmod -x /etc/update-motd.d/*
 
 # Wireguard Setup
 echo "Setting up Wireguard..."
-curl -o /etc/wireguard/wg0.conf https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf?inline=false
+curl -o /etc/wireguard/wg0.conf https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf
 umask 077
 wg genkey > /etc/wireguard/privatekey
 wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
@@ -106,7 +106,7 @@ umask 022
 
 # Get newpeer.sh script
 echo "Downloading and setting up the newpeer.sh script for Wireguard..."
-curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh?inline=false
+curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh
 sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
 sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
 
