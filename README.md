@@ -10,5 +10,5 @@ bash setup.sh
 ## Wireguard New Peer
 
 ```sh
-sh /etc/wirieguard/newpeer.sh NEWPEERNAME 
+sh /etc/wireguard/newpeer.sh NEWPEERNAME 
 ```
