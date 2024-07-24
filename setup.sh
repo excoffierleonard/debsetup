@@ -62,7 +62,7 @@ echo "Installing necessary packages..."
 codename=$(lsb_release -cs)
 echo "deb http://deb.debian.org/debian $codename-backports main contrib non-free" | tee -a /etc/apt/sources.list
 apt update -y
-apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr ripgrep qrencode nginx certbot npm \
+apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr ripgrep qrencode nginx certbot npm mariadb-server \
                zsh-syntax-highlighting zsh-autosuggestions \
                linux-headers-amd64 zfsutils-linux \
                --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system virtinst
