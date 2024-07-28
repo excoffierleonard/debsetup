@@ -21,6 +21,11 @@ prompt_with_default() {
     echo "${var:-$default}"
 }
 
+# Function to check if a user exists
+user_exists() {
+    id "$1" &>/dev/null
+}
+
 # Choose the network interface used for internet connectivity
 DEFAULT_ROUTE=$(ip route get 1.1.1.1)
 WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
@@ -45,6 +50,42 @@ echo "You have selected port $SSH_PORT for SSH"
 WIREGUARD_PORT=$(prompt_with_default "Enter the Wireguard VPN port you wish to use" "51820")
 echo "You have selected port $WIREGUARD_PORT for Wireguard"
 
+# Ask for new user to create or use existing user
+NEW_USER=$(prompt_with_default "Enter new username to create or an existing username to configure" "")
+
+if user_exists "$NEW_USER"; then
+    echo "User $NEW_USER already exists."
+else
+    echo "Creating new user $NEW_USER..."
+    adduser --disabled-password --gecos "" "$NEW_USER"
+    echo "User $NEW_USER created."
+fi
+
+# Add new user to sudoers if desired
+ADD_TO_SUDOERS=$(prompt_with_default "Do you want to add $NEW_USER to sudoers? (y/n)" "y")
+if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+    usermod -aG sudo "$NEW_USER"
+    echo "User $NEW_USER added to sudoers."
+fi
+
+# Ask for SSH public key for the new user
+SSH_KEY=$(prompt_with_default "Enter SSH public key for $NEW_USER or leave blank to disable password and PAM auth" "")
+if [[ -n "$SSH_KEY" ]]; then
+    mkdir -p /home/"$NEW_USER"/.ssh
+    echo "$SSH_KEY" > /home/"$NEW_USER"/.ssh/authorized_keys
+    chown -R "$NEW_USER":"$NEW_USER" /home/"$NEW_USER"/.ssh
+else
+    echo "No SSH key provided. Ensuring $NEW_USER cannot login with password..."
+    passwd -d "$NEW_USER"
+    passwd -l "$NEW_USER"
+fi
+
+# Choose which utilities to install
+INSTALL_ZFS=$(prompt_with_default "Do you want to install ZFS utilities? (y/n)" "y")
+INSTALL_LIBVIRT=$(prompt_with_default "Do you want to install virtualization utilities (libvirt, QEMU)? (y/n)" "y")
+INSTALL_DOCKER=$(prompt_with_default "Do you want to install Docker? (y/n)" "y")
+INSTALL_VPN=$(prompt_with_default "Do you want to setup Wireguard VPN? (y/n)" "y")
+
 # Begin Setup
 echo "Beginning of Setup..."
 export DEBIAN_FRONTEND=noninteractive
@@ -67,13 +108,16 @@ apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux b
                linux-headers-amd64 zfsutils-linux \
                --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system virtinst
 
-# Setup Zsh
+# Setup Zsh for root and new user
 setup_zsh() {
     echo "Setting up zsh..."
     curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
-    chsh -s /bin/zsh
+    cp /etc/skel/.zshrc /home/"$NEW_USER"/
+    chown "$NEW_USER":"$NEW_USER" /home/"$NEW_USER"/.zshrc
+    chsh -s /bin/zsh root
+    chsh -s /bin/zsh "$NEW_USER"
 }
 setup_zsh
 
@@ -105,7 +149,9 @@ setup_wireguard() {
     systemctl enable wg-quick@wg0.service
     umask 022
 }
-setup_wireguard
+if [[ "$INSTALL_VPN" == "y" ]]; then
+    setup_wireguard
+fi
 
 # Get newpeer.sh script
 setup_newpeer() {
@@ -114,7 +160,9 @@ setup_newpeer() {
     sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
 }
-setup_newpeer
+if [[ "$INSTALL_VPN" == "y" ]]; then
+    setup_newpeer
+fi
 
 # Install Duplicacy
 setup_duplicacy() {
@@ -131,7 +179,9 @@ setup_docker() {
     sh get-docker.sh
     rm get-docker.sh
 }
-setup_docker
+if [[ "$INSTALL_DOCKER" == "y" ]]; then
+    setup_docker
+fi
 
 # Backup configurations
 backup_configs() {
@@ -172,6 +222,18 @@ setup_fail2ban() {
 }
 setup_fail2ban
 
+# Install ZFS utilities if selected
+if [[ "$INSTALL_ZFS" == "y" ]]; then
+    echo "Installing ZFS utilities..."
+    apt install -y zfsutils-linux
+fi
+
+# Install virtualization utilities if selected
+if [[ "$INSTALL_LIBVIRT" == "y" ]]; then
+    echo "Installing virtualization utilities..."
+    apt install -y qemu-system libvirt-clients libvirt-daemon-system virtinst
+fi
+
 # Change time zone
 change_timezone() {
     echo "Changing time zone to EST"
@@ -187,5 +249,20 @@ cleanup() {
     unset DEBIAN_FRONTEND
 }
 cleanup
+
+# Recap
+echo "Setup completed with the following configuration:"
+echo "Hostname: $HOSTNAME"
+echo "WAN Interface: $WAN_INTERFACE"
+echo "Endpoint: $ENDPOINT"
+echo "SSH Port: $SSH_PORT"
+echo "Wireguard Port: $WIREGUARD_PORT"
+echo "New User: $NEW_USER"
+echo "Added User to sudoers: $ADD_TO_SUDOERS"
+echo "Installed ZFS: $INSTALL_ZFS"
+echo "Installed Virtualization Utilities: $INSTALL_LIBVIRT"
+echo "Installed Docker: $INSTALL_DOCKER"
+echo "Set up Wireguard: $INSTALL_VPN"
+echo "Please reboot your server."
 
 echo "Basic setup completed. Please reboot your server."
