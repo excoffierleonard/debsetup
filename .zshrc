@@ -35,6 +35,9 @@ SAVEHIST=5000
 HISTFILE=~/.zsh_history
 setopt histignorealldups sharehistory
 
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+
 # Execute Neofetch at startup
 echo ""
 neofetch
