@@ -18,6 +18,16 @@ source /usr/share/doc/fzf/examples/completion.zsh
 
 # Make the ls command better
 alias ls="exa -alh --group-directories-first"
+alias gti="git"
+alias vim="nvim"
+alias cl="clear"
+alias grep="rg"
+alias cd="z"
+alias top="btop"
+alias :q="exit"
+alias lg="lazygit"
+alias python="python3"
+alias pip="pip3"
 
 # Keep 5000 lines of history within the shell and save it to ~/.zsh_history:
 HISTSIZE=5000
