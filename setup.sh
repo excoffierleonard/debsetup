@@ -66,6 +66,7 @@ user_input() {
 # Install packages
 install_packages() {
     echo "Installing necessary packages..."
+    codename=$(lsb_release -cs)
     echo "deb http://deb.debian.org/debian $codename-backports main contrib non-free" | tee -a /etc/apt/sources.list
     apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr ripgrep qrencode nginx certbot npm mariadb-server zip \
                    zsh-syntax-highlighting zsh-autosuggestions \
