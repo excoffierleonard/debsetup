@@ -79,7 +79,7 @@ user_input() {
     echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
 
     # Ask for SSH key if desired
-    SSH_KEY=$(prompt_with_default "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): ")
+    read -p "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): " SSH_KEY
     if [[ -n "$SSH_KEY" ]]; then
         echo "SSH key: $SSH_KEY will be set for $USERNAME"
     fi
