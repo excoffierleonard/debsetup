@@ -12,17 +12,15 @@ NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
 # TODO: Add a one click option for full defaults
 # TODO: Add an options to segment installation of what I want
 # TODO: Better segment initial_setup and group of tools
-# TODO: Put all the links variable at the top
 # TODO: Output a recap before doing modifications and at the end of script
 # TODO: Tell the user how long the isntallation took (or will take if possible), with the time command
 # TODO: Centralize all external download at first
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
-# TODO: Add a check for the user to input the public key for the user to verify the user wont be locked out
-# TODO: Explicitly say that root password will be disabled
+# TODO: Explicitly say that root password will be disabled and ssh key will be used
 # TODO: Add checks so script is run twice with no problem
-
+# TODO: Maybe do not force zsh config for all users
 
 # Initial requirement verifications
 initial_verification() {
@@ -99,6 +97,18 @@ user_input() {
         DISABLE_PASSWORD_AUTH=$(prompt_with_default "Do you want to disable password authentication for SSH? (y/n)" "n")
         echo "You have selected $DISABLE_PASSWORD_AUTH to disable password option for SSH"
     fi
+
+    # ZFS Installation
+    INSTALL_ZFS=$(prompt_with_default "Do you want to install ZFS? (y/n)" "y")
+    echo "You have selected $INSTALL_ZFS for ZFS installation"
+
+    # Virtualization Installation
+    INSTALL_VIRT=$(prompt_with_default "Do you want to install Virtualization packages? (y/n)" "y")
+    echo "You have selected $INSTALL_VIRT for Virtualization packages installation"
+
+    # Docker Installation
+    INSTALL_DOCKER=$(prompt_with_default "Do you want to install Docker Engine? (y/n)" "y")
+    echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 }
 
 # Initial setup
@@ -126,38 +136,12 @@ initial_setup() {
         echo "User $USERNAME added to sudoers."
     fi
 
-    # If SSH key is provided, add it to the user's authorized keys
-    if [[ -n "$SSH_KEY" ]]; then
-        echo "Adding SSH key to $USERNAME's authorized keys..."
-        mkdir -p "/home/$USERNAME/.ssh"
-        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
-        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
-        chmod 700 "/home/$USERNAME/.ssh"
-        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
-        echo "SSH key added to $USERNAME's authorized keys."
-    fi
-
-    # Disable password authentication if desired
-    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
-        echo "Disabling password authentication for SSH..."
-        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
-        systemctl restart ssh
-        echo "Password authentication disabled for SSH."
-    fi
-
     # Change the system hostname
     echo "Changing the system hostname..."
     hostnamectl set-hostname "$HOSTNAME"
 
     echo "Changing time zone to EST..."
     timedatectl set-timezone America/New_York
-}
-
-# Install Lazydocker
-install_lazydocker() {
-    echo "Installing Lazydocker..."
-    curl -sSL $LAZYDOCKER_INSTALL_SCRIPT | bash
-    apt install lazydocker
 }
 
 # Install Lazygit
@@ -181,7 +165,6 @@ install_duplicacy() {
 install_tools() {
     echo "Installing tools..."
     apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
-    install_lazydocker
     install_lazygit
     install_duplicacy
 }
@@ -207,12 +190,20 @@ install_virt() {
     apt install -y qemu-system libvirt-clients libvirt-daemon-system virtinst
 }
 
+# Install Lazydocker
+install_lazydocker() {
+    echo "Installing Lazydocker..."
+    curl -sSL $LAZYDOCKER_INSTALL_SCRIPT | bash
+    apt install lazydocker
+}
+
 # Install Docker Engine
 install_docker() {
     echo "Installing Docker Engine..."
     curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
     sh get-docker.sh
     rm get-docker.sh
+    install_lazydocker
 }
 
 # Setup Zsh
@@ -280,6 +271,21 @@ secure_ssh() {
     cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
     sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "Adding SSH key to $USERNAME's authorized keys..."
+        mkdir -p "/home/$USERNAME/.ssh"
+        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
+        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
+        chmod 700 "/home/$USERNAME/.ssh"
+        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
+        echo "SSH key added to $USERNAME's authorized keys."
+    fi
+    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+        echo "Disabling password authentication for SSH..."
+        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
+        systemctl restart ssh
+        echo "Password authentication disabled for SSH."
+    fi
     systemctl restart ssh
 }
 
@@ -313,9 +319,15 @@ install() {
     initial_setup
     install_tools
     install_system_services
-    install_zfs
-    install_virt
-    install_docker
+    if [[ "$INSTALL_ZFS" == "y" ]]; then
+        install_zfs
+    fi
+    if [[ "$INSTALL_VIRT" == "y" ]]; then
+        install_virt
+    fi
+    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+        install_docker
+    fi
 }
 
 setup() {
