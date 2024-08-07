@@ -153,10 +153,37 @@ initial_setup() {
     timedatectl set-timezone America/New_York
 }
 
+# Install Lazydocker
+install_lazydocker() {
+    echo "Installing Lazydocker..."
+    curl -sSL $LAZYDOCKER_INSTALL_SCRIPT | bash
+    apt install lazydocker
+}
+
+# Install Lazygit
+install_lazygit() {
+    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazygit.tar.gz lazygit
+    install lazygit /usr/local/bin
+    rm lazygit.tar.gz
+    rm lazygit
+}
+
+# Install Duplicacy
+install_duplicacy() {
+    echo "Installing Duplicacy..."
+    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
+    chmod +x /usr/local/bin/duplicacy
+}
+
 # Install packages
 install_tools() {
     echo "Installing tools..."
     apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
+    install_lazydocker
+    install_lazygit
+    install_duplicacy
 }
 
 # Install system services
@@ -186,30 +213,6 @@ install_docker() {
     curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
     sh get-docker.sh
     rm get-docker.sh
-}
-
-# Install Duplicacy
-install_duplicacy() {
-    echo "Installing Duplicacy..."
-    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
-    chmod +x /usr/local/bin/duplicacy
-}
-
-# Install Lazydocker
-install_lazydocker() {
-    echo "Installing Lazydocker..."
-    curl -sSL $LAZYDOCKER_INSTALL_SCRIPT | bash
-    apt install lazydocker
-}
-
-# Install Lazygit
-install_lazygit() {
-    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\\K[^"]*')
-    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-    tar xf lazygit.tar.gz lazygit
-    install lazygit /usr/local/bin
-    rm lazygit.tar.gz
-    rm lazygit
 }
 
 # Setup Zsh
@@ -313,9 +316,6 @@ install() {
     install_zfs
     install_virt
     install_docker
-    install_duplicacy
-    install_lazydocker
-    install_lazygit
 }
 
 setup() {
