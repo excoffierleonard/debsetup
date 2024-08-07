@@ -2,7 +2,6 @@
 
 # TODO: Add a one click option for full defaults
 # TODO: Add an options to segment installation of what I want
-# TODO: Add SSH keys only option securization
 # TODO: Better segment initial_setup and group of tools
 # TODO: Put all the links variable at the top
 # TODO: Output a recap before doing modifications and at the end of script
@@ -77,6 +76,18 @@ user_input() {
     # Add new user to sudoers if desired
     ADD_TO_SUDOERS=$(prompt_with_default "Do you want to add $USERNAME to sudoers? (y/n)" "y")
     echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
+
+    # Ask for SSH key if desired
+    SSH_KEY=$(prompt_with_default "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): ")
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "SSH key: $SSH_KEY will be set for $USERNAME"
+    fi
+
+    # Ask user if they want to disable password authentication
+    if [[ -n "$SSH_KEY" ]]; then
+        DISABLE_PASSWORD_AUTH=$(prompt_with_default "Do you want to disable password authentication for SSH? (y/n)" "n")
+        echo "You have selected $DISABLE_PASSWORD_AUTH to disable password option for SSH"
+    fi
 }
 
 # Initial setup
@@ -102,6 +113,25 @@ initial_setup() {
     if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
         usermod -aG sudo "$NEW_USER"
         echo "User $USERNAME added to sudoers."
+    fi
+
+    # If SSH key is provided, add it to the user's authorized keys
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "Adding SSH key to $USERNAME's authorized keys..."
+        mkdir -p "/home/$USERNAME/.ssh"
+        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
+        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
+        chmod 700 "/home/$USERNAME/.ssh"
+        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
+        echo "SSH key added to $USERNAME's authorized keys."
+    fi
+
+    # Disable password authentication if desired
+    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+        echo "Disabling password authentication for SSH..."
+        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
+        systemctl restart ssh
+        echo "Password authentication disabled for SSH."
     fi
 
     # Change the system hostname
