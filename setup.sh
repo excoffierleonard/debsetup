@@ -14,7 +14,6 @@ NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
 # TODO: Better segment initial_setup and group of tools
 # TODO: Output a recap before doing modifications and at the end of script
 # TODO: Tell the user how long the isntallation took (or will take if possible), with the time command
-# TODO: Centralize all external download at first
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
@@ -111,6 +110,34 @@ user_input() {
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 }
 
+# Centralize necessary downloads based on user input
+centralize_downloads() {
+    echo "Centralizing necessary downloads based on choices..."
+
+    # Always download Zsh configuration and Wireguard configuration files
+    curl -o /etc/skel/.zshrc $ZSHRC_FILE
+    curl -o /etc/wireguard/wg0.conf $WG0_CONF
+    curl -o /etc/wireguard/newpeer.sh $NEWPEER_SH
+
+    # Conditional downloads based on user selections
+
+    # If Lazygit is installed (part of tools), download it
+    echo "Preparing to download Lazygit..."
+    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\\\\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+
+    # If Duplicacy is needed (part of tools), download it
+    echo "Preparing to download Duplicacy..."
+    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
+
+    # If Docker is to be installed, download Docker script and Lazydocker
+    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+        echo "Preparing to download Docker installation script and Lazydocker..."
+        curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
+        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o lazydocker_install.sh
+    fi
+}
+
 # Initial setup
 initial_setup() {
     # Begin Setup
@@ -121,6 +148,9 @@ initial_setup() {
     echo "Updating and upgrading your system..."
     apt update
     apt full-upgrade -y
+
+    # Download necessary files based on user input
+    centralize_downloads
 
     # Create the user if necessary and set the password
     if ! id "$USERNAME" &>/dev/null; then
@@ -146,8 +176,6 @@ initial_setup() {
 
 # Install Lazygit
 install_lazygit() {
-    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\\K[^"]*')
-    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
     tar xf lazygit.tar.gz lazygit
     install lazygit /usr/local/bin
     rm lazygit.tar.gz
@@ -157,7 +185,6 @@ install_lazygit() {
 # Install Duplicacy
 install_duplicacy() {
     echo "Installing Duplicacy..."
-    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
     chmod +x /usr/local/bin/duplicacy
 }
 
@@ -193,14 +220,13 @@ install_virt() {
 # Install Lazydocker
 install_lazydocker() {
     echo "Installing Lazydocker..."
-    curl -sSL $LAZYDOCKER_INSTALL_SCRIPT | bash
+    bash lazydocker_install.sh
     apt install lazydocker
 }
 
 # Install Docker Engine
 install_docker() {
     echo "Installing Docker Engine..."
-    curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
     sh get-docker.sh
     rm get-docker.sh
     install_lazydocker
@@ -209,7 +235,6 @@ install_docker() {
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
-    curl -o /etc/skel/.zshrc $ZSHRC_FILE
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
     chsh -s /bin/zsh root
@@ -232,7 +257,6 @@ setup_login_page() {
 # Wireguard Setup
 setup_wireguard() {
     echo "Setting up Wireguard..."
-    curl -o /etc/wireguard/wg0.conf $WG0_CONF
     umask 077
     wg genkey > /etc/wireguard/privatekey
     wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
@@ -249,7 +273,6 @@ setup_wireguard() {
 # Get newpeer.sh script
 setup_newpeer() {
     echo "Downloading and setting up the newpeer.sh script for Wireguard..."
-    curl -o /etc/wireguard/newpeer.sh $NEWPEER_SH
     sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
 }
