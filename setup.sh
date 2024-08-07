@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# External links centralized
+DOCKER_INSTALL_SCRIPT="https://get.docker.com"
+DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
+LAZYDOCKER_INSTALL_SCRIPT="https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository"
+LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
+ZSHRC_FILE="https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc"
+WG0_CONF="https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf"
+NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
+
 # TODO: Add a one click option for full defaults
 # TODO: Add an options to segment installation of what I want
 # TODO: Better segment initial_setup and group of tools
@@ -12,6 +21,7 @@
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
 # TODO: Add a check for the user to input the public key for the user to verify the user wont be locked out
 # TODO: Explicitly say that root password will be disabled
+# TODO: Add checks so script is run twice with no problem
 
 
 # Initial requirement verifications
@@ -42,7 +52,7 @@ user_input() {
 
     # Choose the network interface used for internet connectivity
     DEFAULT_ROUTE=$(ip route get 1.1.1.1)
-    WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
+    WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \\K\\S+')
     WAN_INTERFACE=$(prompt_with_default "Enter the WAN Interface you would like to use" "$WAN_INTERFACE_DEFAULT")
     echo "You have selected $WAN_INTERFACE as the server WAN's Interface"
 
@@ -179,7 +189,7 @@ install_virt() {
 # Install Docker Engine
 install_docker() {
     echo "Installing Docker Engine..."
-    curl -fsSL https://get.docker.com -o get-docker.sh
+    curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
     sh get-docker.sh
     rm get-docker.sh
 }
@@ -187,20 +197,20 @@ install_docker() {
 # Install Duplicacy
 install_duplicacy() {
     echo "Installing Duplicacy..."
-    curl -fsSL https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3 -o /usr/local/bin/duplicacy
+    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
     chmod +x /usr/local/bin/duplicacy
 }
 
 # Install Lazydocker
 install_lazydocker() {
     echo "Installing Lazydocker..."
-    curl -sSL https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository | bash
+    curl -sSL $LAZYDOCKER_INSTALL_SCRIPT | bash
     apt install lazydocker
 }
 
 # Install Lazygit
 install_lazygit() {
-    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\\K[^"]*')
     curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
     tar xf lazygit.tar.gz lazygit
     install lazygit /usr/local/bin
@@ -211,7 +221,7 @@ install_lazygit() {
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
-    curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
+    curl -o /etc/skel/.zshrc $ZSHRC_FILE
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
     chsh -s /bin/zsh root
@@ -234,7 +244,7 @@ setup_login_page() {
 # Wireguard Setup
 setup_wireguard() {
     echo "Setting up Wireguard..."
-    curl -o /etc/wireguard/wg0.conf https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf
+    curl -o /etc/wireguard/wg0.conf $WG0_CONF
     umask 077
     wg genkey > /etc/wireguard/privatekey
     wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
@@ -251,7 +261,7 @@ setup_wireguard() {
 # Get newpeer.sh script
 setup_newpeer() {
     echo "Downloading and setting up the newpeer.sh script for Wireguard..."
-    curl -o /etc/wireguard/newpeer.sh https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh
+    curl -o /etc/wireguard/newpeer.sh $NEWPEER_SH
     sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
 }
@@ -281,7 +291,7 @@ setup_fail2ban() {
     echo "Setting up Fail2Ban..."
     cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
     cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-    sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
+    sed -i "/^\\[sshd\\]$/,/^\\[/ s/port\\s*=\\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
     systemctl enable fail2ban
     systemctl restart fail2ban
 }
