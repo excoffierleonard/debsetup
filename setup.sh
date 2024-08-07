@@ -50,29 +50,76 @@ user_input() {
     WIREGUARD_PORT=$(prompt_with_default "Enter the Wireguard VPN port you wish to use" "51820")
     echo "You have selected port $WIREGUARD_PORT for Wireguard"
 
+    # Create a new user or input an existing user
+    USERNAME=$(prompt_with_default "Enter the username of the user you wish to create or use" "el")
+    echo "You have selected user $USERNAME"
+}
+
+# Initial setup
+initial_setup() {
     # Begin Setup
     echo "Beginning of Setup..."
     export DEBIAN_FRONTEND=noninteractive
 
     # Update and upgrade system
     echo "Updating and upgrading your system..."
-    apt update && apt full-upgrade -y
+    apt update
+    apt full-upgrade -y
 
     # Change the system hostname
     echo "Changing the system hostname..."
     hostnamectl set-hostname "$HOSTNAME"
+
+    echo "Changing time zone to EST..."
+    timedatectl set-timezone America/New_York
 }
 
 # Install packages
-install_packages() {
-    echo "Installing necessary packages..."
+install_tools() {
+    echo "Installing tools..."
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip \
+}
+
+# Install system services
+install_system_services() {
+    echo "Installing system services..."
+    apt install -y ufw fail2ban wireguard zsh zsh-syntax-highlighting zsh-autosuggestions
+}
+
+# Install server services
+install_server_services() {
+    echo "Installing server services..."
+    apt install -y nginx mariadb-server
+}
+
+# Install ZFS
+install_zfs() {
+    echo "Installing ZFS..."
     codename=$(lsb_release -cs)
     echo "deb http://deb.debian.org/debian $codename-backports main contrib non-free" | tee -a /etc/apt/sources.list
-    apt update -y
-    apt install -y sudo neovim git curl wget mc ufw fail2ban wireguard ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch zsh cmatrix fzf exa tldr ripgrep qrencode nginx certbot npm mariadb-server zip \
-                   zsh-syntax-highlighting zsh-autosuggestions \
-                   linux-headers-amd64 zfsutils-linux \
-                   --no-install-recommends qemu-system libvirt-clients libvirt-daemon-system virtinst
+    apt update
+    apt install -y linux-headers-amd64 zfsutils-linux
+}
+
+# Install Virtualization packages
+install_virt() {
+    echo "Installing Virtualization packages..."
+    apt install -y qemu-system libvirt-clients libvirt-daemon-system virtinst
+}
+
+# Install Docker Engine
+install_docker() {
+    echo "Installing Docker Engine..."
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+    rm get-docker.sh
+}
+
+# Install Duplicacy
+install_duplicacy() {
+    echo "Installing Duplicacy..."
+    curl -fsSL https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3 -o /usr/local/bin/duplicacy
+    chmod +x /usr/local/bin/duplicacy
 }
 
 # Setup Zsh
@@ -81,9 +128,11 @@ setup_zsh() {
     curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
-    chsh -s /bin/zsh
+    cp /etc/skel/.zshrc /home/$USERNAME/
+    chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
+    chsh -s /bin/zsh root
+    chsh -s /bin/zsh $USERNAME
 }
-
 
 # Changing login page formatting, removing default MOTDs
 setup_login_page() {
@@ -121,28 +170,6 @@ setup_newpeer() {
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
 }
 
-# Install Duplicacy
-setup_duplicacy() {
-    echo "Installing Duplicacy..."
-    curl -fsSL https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3 -o /usr/local/bin/duplicacy
-    chmod +x /usr/local/bin/duplicacy
-}
-
-# Install Docker Engine
-setup_docker() {
-    echo "Installing Docker Engine..."
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sh get-docker.sh
-    rm get-docker.sh
-}
-
-# Backup configurations
-backup_configs() {
-    echo "Backing up config files..."
-    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
-}
-
 # Setup UFW (Uncomplicated Firewall)
 setup_ufw() {
     echo "Setting up UFW..."
@@ -157,6 +184,7 @@ setup_ufw() {
 # Secure SSH
 secure_ssh() {
     echo "Securing SSH..."
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
     sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
     systemctl restart ssh
@@ -165,42 +193,58 @@ secure_ssh() {
 # Setup Fail2Ban
 setup_fail2ban() {
     echo "Setting up Fail2Ban..."
+    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
     cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
     sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
     systemctl enable fail2ban
     systemctl restart fail2ban
 }
 
-# Change time zone
-change_timezone() {
-    echo "Changing time zone to EST"
-    timedatectl set-timezone America/New_York
-    echo "Time zone changed to EST"
-}
-
-# Remove unnecessary packages
+# End of script actions
 cleanup() {
-    echo "Removing unnecessary packages..."
+    echo "End of script actions..."
+    apt update
+    apt full-upgrade -y
     apt autoremove -y
+    rm debsetup.sh
     unset DEBIAN_FRONTEND
     echo "Basic setup completed. Please reboot your server."
 }
 
-main() {
+init() {
     initial_verification
     user_input
-    install_packages
+}
+
+install() {
+    initial_setup
+    install_tools
+    install_system_services
+    install_server_services
+    install_zfs
+    install_virt
+    install_docker
+    install_duplicacy
+}
+
+setup() {
     setup_zsh
     setup_login_page
     setup_wireguard
     setup_newpeer
-    setup_duplicacy
-    setup_docker
-    backup_configs
     setup_ufw
     secure_ssh
     setup_fail2ban
-    change_timezone
+}
+
+cleanup() {
+    cleanup
+}
+
+main() {
+    init
+    install
+    setup
     cleanup
 }
 
