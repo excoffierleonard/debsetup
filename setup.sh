@@ -165,12 +165,6 @@ install_system_services() {
     apt install -y ufw fail2ban wireguard zsh zsh-syntax-highlighting zsh-autosuggestions
 }
 
-# Install server services
-install_server_services() {
-    echo "Installing server services..."
-    apt install -y nginx mariadb-server
-}
-
 # Install ZFS
 install_zfs() {
     echo "Installing ZFS..."
@@ -316,7 +310,6 @@ install() {
     initial_setup
     install_tools
     install_system_services
-    install_server_services
     install_zfs
     install_virt
     install_docker
