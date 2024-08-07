@@ -1,11 +1,26 @@
 #!/bin/bash
 
+# TODO: Add a one click option for full defaults
+# TODO: Add an options to segment installation of what I want
+# TODO: Add SSH keys only option securization
+# TODO: Add lazydocker to setup
+# TODO: Better segment initial_setup and group of tools
+# TODO: Put all the links variable at the top
+# TODO: Output a recap before doing modifications and at the end of script
+# TODO: Tell the user how long the isntallation took (or will take if possible), with the time command
+# TODO: Centralize all external download at first
+# TODO: Create a dotfile repo for debian server
+# TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
+# TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
+# TODO: Add a check for the user to input the public key for the user to verify the user wont be locked out
+# TODO: Add option to disable password auth
+
 # Initial requirement verifications
 initial_verification() {
     # Ensure the script is run as root
     if [[ "$(id -u)" != "0" ]]; then
-    echo "This script must be run as root" >&2
-    exit 1
+        echo "This script must be run as root" >&2
+        exit 1
     fi
 
     # Check for Internet connectivity
@@ -53,6 +68,16 @@ user_input() {
     # Create a new user or input an existing user
     USERNAME=$(prompt_with_default "Enter the username of the user you wish to create or use" "el")
     echo "You have selected user $USERNAME"
+
+    # Ask for password if user does not exist
+    if ! id "$USERNAME" &>/dev/null; then
+        read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
+        echo "Password will be set for $USERNAME"
+    fi
+
+    # Add new user to sudoers if desired
+    ADD_TO_SUDOERS=$(prompt_with_default "Do you want to add $USERNAME to sudoers? (y/n)" "y")
+    echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
 }
 
 # Initial setup
@@ -65,6 +90,20 @@ initial_setup() {
     echo "Updating and upgrading your system..."
     apt update
     apt full-upgrade -y
+
+    # Create the user if necessary and set the password
+    if ! id "$USERNAME" &>/dev/null; then
+        echo "Creating user $USERNAME..."
+        useradd -m "$USERNAME"
+        echo "$USERNAME:$USER_PASSWORD" | chpasswd
+        echo "User $USERNAME created with specified password."
+    fi
+
+    # Add user to sudoers if desired
+    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+        usermod -aG sudo "$NEW_USER"
+        echo "User $USERNAME added to sudoers."
+    fi
 
     # Change the system hostname
     echo "Changing the system hostname..."
@@ -128,9 +167,9 @@ setup_zsh() {
     curl -o /etc/skel/.zshrc https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
+    chsh -s /bin/zsh root
     cp /etc/skel/.zshrc /home/$USERNAME/
     chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
-    chsh -s /bin/zsh root
     chsh -s /bin/zsh $USERNAME
 }
 
