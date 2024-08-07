@@ -11,7 +11,8 @@
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
 # TODO: Add a check for the user to input the public key for the user to verify the user wont be locked out
-# TODO: Add option to disable password auth
+# TODO: Explicitly say that root password will be disabled
+
 
 # Initial requirement verifications
 initial_verification() {
@@ -111,7 +112,7 @@ initial_setup() {
 
     # Add user to sudoers if desired
     if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
-        usermod -aG sudo "$NEW_USER"
+        usermod -aG sudo "$USERNAME"
         echo "User $USERNAME added to sudoers."
     fi
 
@@ -145,7 +146,7 @@ initial_setup() {
 # Install packages
 install_tools() {
     echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip \
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop
 }
 
 # Install system services
