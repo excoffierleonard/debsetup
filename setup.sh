@@ -3,7 +3,6 @@
 # TODO: Add a one click option for full defaults
 # TODO: Add an options to segment installation of what I want
 # TODO: Add SSH keys only option securization
-# TODO: Add lazydocker to setup
 # TODO: Better segment initial_setup and group of tools
 # TODO: Put all the links variable at the top
 # TODO: Output a recap before doing modifications and at the end of script
@@ -161,6 +160,23 @@ install_duplicacy() {
     chmod +x /usr/local/bin/duplicacy
 }
 
+# Install Lazydocker
+install_lazydocker() {
+    echo "Installing Lazydocker..."
+    curl -sSL https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository | bash
+    apt install lazydocker
+}
+
+# Install Lazygit
+install_lazygit() {
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazygit.tar.gz lazygit
+    install lazygit /usr/local/bin
+    rm lazygit.tar.gz
+    rm lazygit
+}
+
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
@@ -264,6 +280,8 @@ install() {
     install_virt
     install_docker
     install_duplicacy
+    install_lazydocker
+    install_lazygit
 }
 
 setup() {
