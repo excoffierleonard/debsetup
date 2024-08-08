@@ -2,13 +2,13 @@
 
 # TODO: Add a one click option for full defaults
 # TODO: Output a recap before doing modifications and at the end of script
-# TODO: Tell the user how long the isntallation took (or will take if possible), with the time command
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
 # TODO: Explicitly say that root password will be disabled and ssh key will be used
 # TODO: Add checks so script is run twice with no problem
 # TODO: Maybe do not force zsh config for all users
+# TODO: Make default usernam dynamic
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -58,19 +58,23 @@ user_input() {
     
 
     # Choose Hostname
-    HOSTNAME=$(prompt_with_default "Enter system Hostname you wish to use" "$DEFAULT_HOSTNAME")
+    read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
+    HOSTNAME=${HOSTNAME:-$DEFAULT_HOSTNAME}
     echo "You have selected $HOSTNAME as the server Hostname"
 
     # Choose SSH port
-    SSH_PORT=$(prompt_with_default "Enter the SSH port you wish to use" "$DEFAULT_SSH_PORT")
+    read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
+    SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
     echo "You have selected port $SSH_PORT for SSH"
 
     # Create a new user or input an existing user
-    USERNAME=$(prompt_with_default "Enter the username of the user you wish to create or use" "$DEFAULT_USERNAME")
+    read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
+    USERNAME=${USERNAME:-$DEFAULT_USERNAME}
     echo "You have selected user $USERNAME"
 
     # Add new user to sudoers if desired
-    ADD_TO_SUDOERS=$(prompt_with_default "Do you want to add $USERNAME to sudoers? (y/n)" "$DEFAULT_ADD_TO_SUDOERS")
+    read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
+    ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
     echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
 
     # Ask for password if user does not exist
@@ -87,39 +91,46 @@ user_input() {
 
     # Ask user if they want to disable password authentication
     if [[ -n "$SSH_KEY" ]]; then
-        DISABLE_PASSWORD_AUTH=$(prompt_with_default "Do you want to disable password authentication for SSH? (y/n)" "$DEFAULT_DISABLE_PASSWORD_AUTH")
+        read -p "Do you want to disable password authentication for SSH? (y/n, press Enter to choose $DEFAULT_DISABLE_PASSWORD_AUTH): " DISABLE_PASSWORD_AUTH
+        DISABLE_PASSWORD_AUTH=${DISABLE_PASSWORD_AUTH:-$DEFAULT_DISABLE_PASSWORD_AUTH}
         echo "You have selected $DISABLE_PASSWORD_AUTH to disable password option for SSH"
     fi
 
     # Wireguard Installation
-    INSTALL_WG=$(prompt_with_default "Do you want to install Wireguard? (y/n)" "$DEFAULT_INSTALL_WG")
+    read -p "Do you want to install Wireguard? (y/n, press Enter to choose $DEFAULT_INSTALL_WG): " INSTALL_WG
+    INSTALL_WG=${INSTALL_WG:-$DEFAULT_INSTALL_WG}
     echo "You have selected $INSTALL_WG for Wireguard installation"
 
     if [[ "$INSTALL_WG" == "y" ]]; then
         # Choose the network interface used for internet connectivity
-        WAN_INTERFACE=$(prompt_with_default "Enter the WAN Interface you would like to use for Wireguard" "$DEFAULT_WAN_INTERFACE")
+        read -p "Enter the WAN Interface you would like to use for Wireguard (press Enter to choose $DEFAULT_WAN_INTERFACE): " WAN_INTERFACE
+        WAN_INTERFACE=${WAN_INTERFACE:-$DEFAULT_WAN_INTERFACE}
         echo "You have selected $WAN_INTERFACE as the server WAN's Interface for Wireguard"
 
         # Choose the WAN Endpoint of the server
-        ENDPOINT=$(prompt_with_default "Enter the public IP address / Domain Name of the server to be used for Wireguard" "$DEFAULT_ENDPOINT")
+        read -p "Enter the public IP address / Domain Name of the server to be used for Wireguard (press Enter to choose $DEFAULT_ENDPOINT): " ENDPOINT
+        ENDPOINT=${ENDPOINT:-$DEFAULT_ENDPOINT}
         echo "You have selected $ENDPOINT as the server WAN's Endpoint for Wireguard"
 
         # Choose Wireguard VPN port
-        WIREGUARD_PORT=$(prompt_with_default "Enter the Wireguard VPN port you wish to use" "$DEFAULT_WIREGUARD_PORT")
+        read -p "Enter the Wireguard VPN port you wish to use (press Enter to choose $DEFAULT_WIREGUARD_PORT): " WIREGUARD_PORT
+        WIREGUARD_PORT=${WIREGUARD_PORT:-$DEFAULT_WIREGUARD_PORT}
         echo "You have selected port $WIREGUARD_PORT for Wireguard"
-
     fi
 
     # ZFS Installation
-    INSTALL_ZFS=$(prompt_with_default "Do you want to install ZFS? (y/n)" "y")
+    read -p "Do you want to install ZFS? (y/n, press Enter to choose 'y'): " INSTALL_ZFS
+    INSTALL_ZFS=${INSTALL_ZFS:-y}
     echo "You have selected $INSTALL_ZFS for ZFS installation"
 
     # Virtualization Installation
-    INSTALL_VIRT=$(prompt_with_default "Do you want to install Virtualization packages? (y/n)" "y")
+    read -p "Do you want to install Virtualization packages? (y/n, press Enter to choose 'y'): " INSTALL_VIRT
+    INSTALL_VIRT=${INSTALL_VIRT:-y}
     echo "You have selected $INSTALL_VIRT for Virtualization packages installation"
 
     # Docker Installation
-    INSTALL_DOCKER=$(prompt_with_default "Do you want to install Docker Engine? (y/n)" "y")
+    read -p "Do you want to install Docker Engine? (y/n, press Enter to choose 'y'): " INSTALL_DOCKER
+    INSTALL_DOCKER=${INSTALL_DOCKER:-y}
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 }
 
