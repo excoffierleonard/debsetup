@@ -138,17 +138,8 @@ centralize_downloads() {
     fi
 }
 
-# Initial setup
-initial_setup() {
-    # Begin Setup
-    echo "Beginning of Setup..."
-    export DEBIAN_FRONTEND=noninteractive
 
-    # Update and upgrade system
-    echo "Updating and upgrading your system..."
-    apt update
-    apt full-upgrade -y
-
+create_user() {
     # Create the user if necessary and set the password
     if ! id "$USERNAME" &>/dev/null; then
         echo "Creating user $USERNAME..."
@@ -162,13 +153,32 @@ initial_setup() {
         usermod -aG sudo "$USERNAME"
         echo "User $USERNAME added to sudoers."
     fi
+}
 
+change_hostname() {
     # Change the system hostname
     echo "Changing the system hostname..."
     hostnamectl set-hostname "$HOSTNAME"
+}
 
+change_timezone() {
+    # Change the system time zone
     echo "Changing time zone to EST..."
     timedatectl set-timezone America/New_York
+}
+
+# Initial setup
+initial_setup() {
+    # Begin Setup
+    set -e
+    echo "Beginning of Setup..."
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Update and upgrade system
+    echo "Updating and upgrading your system..."
+    apt update
+    apt full-upgrade -y
+    centralize_downloads
 }
 
 # Install Lazygit
@@ -189,10 +199,6 @@ install_duplicacy() {
 install_tools() {
     echo "Installing tools..."
     apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
-    
-    # Download necessary files based on user input
-    centralize_downloads
-
     install_lazygit
     install_duplicacy
 }
@@ -245,7 +251,7 @@ setup_zsh() {
 }
 
 # Changing login page formatting, removing default MOTDs
-setup_login_page() {
+change_login_page() {
     echo "Changing login page formatting, removing default MOTDs..."
     cp /etc/issue /etc/issue.backup
     cp /etc/motd /etc/motd.backup
@@ -253,6 +259,30 @@ setup_login_page() {
     echo -n "" > /etc/issue
     echo -n "" > /etc/motd
     chmod -x /etc/update-motd.d/*
+}
+
+# Secure SSH
+secure_ssh() {
+    echo "Securing SSH..."
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+    sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
+    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "Adding SSH key to $USERNAME's authorized keys..."
+        mkdir -p "/home/$USERNAME/.ssh"
+        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
+        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
+        chmod 700 "/home/$USERNAME/.ssh"
+        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
+        echo "SSH key added to $USERNAME's authorized keys."
+    fi
+    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+        echo "Disabling password authentication for SSH..."
+        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
+        systemctl restart ssh
+        echo "Password authentication disabled for SSH."
+    fi
+    systemctl restart ssh
 }
 
 # Wireguard Setup
@@ -289,30 +319,6 @@ setup_ufw() {
     echo "y" | ufw enable
 }
 
-# Secure SSH
-secure_ssh() {
-    echo "Securing SSH..."
-    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-    sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
-    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
-    if [[ -n "$SSH_KEY" ]]; then
-        echo "Adding SSH key to $USERNAME's authorized keys..."
-        mkdir -p "/home/$USERNAME/.ssh"
-        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
-        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
-        chmod 700 "/home/$USERNAME/.ssh"
-        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
-        echo "SSH key added to $USERNAME's authorized keys."
-    fi
-    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
-        echo "Disabling password authentication for SSH..."
-        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
-        systemctl restart ssh
-        echo "Password authentication disabled for SSH."
-    fi
-    systemctl restart ssh
-}
-
 # Setup Fail2Ban
 setup_fail2ban() {
     echo "Setting up Fail2Ban..."
@@ -339,8 +345,17 @@ init() {
     user_input
 }
 
-install() {
+initial_setup() {
     initial_setup
+}
+
+local_modifications() {
+    create_user
+    change_hostname
+    change_timezone
+}
+
+install() {
     install_tools
     install_system_services
     if [[ "$INSTALL_ZFS" == "y" ]]; then
@@ -356,11 +371,11 @@ install() {
 
 setup() {
     setup_zsh
-    setup_login_page
+    change_login_page
+    secure_ssh
     setup_wireguard
     setup_newpeer
     setup_ufw
-    secure_ssh
     setup_fail2ban
 }
 
@@ -370,6 +385,7 @@ cleanup() {
 
 main() {
     init
+    initial_setup
     install
     setup
     cleanup
