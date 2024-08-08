@@ -11,6 +11,9 @@
 # TODO: Make default usernam dynamic
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
+# TODO: ADD option for timezone selection
+# TOFIX: CENTRALIZE DOWNLOADS order
+# TOFIX: ADD default zfs and virt and docker to user input
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -58,7 +61,6 @@ user_input() {
     DEFAULT_WAN_INTERFACE=$(ip route get 1.1.1.1 | grep -oP 'dev \K\S+')
     DEFAULT_ENDPOINT=$(wget -qO- http://ipinfo.io/ip)
     
-
     # Choose Hostname
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
     HOSTNAME=${HOSTNAME:-$DEFAULT_HOSTNAME}
@@ -136,6 +138,7 @@ user_input() {
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 
     # Confirm user choices
+    echo ""
     echo "You have selected the following options:"
     echo "Hostname: $HOSTNAME"
     echo "SSH Port: $SSH_PORT"
