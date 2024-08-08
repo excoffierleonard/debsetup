@@ -22,13 +22,11 @@ NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
 
 # Initial requirement verifications
 initial_verification() {
-    # Ensure the script is run as root
     if [[ "$(id -u)" != "0" ]]; then
         echo "This script must be run as root" >&2
         exit 1
     fi
 
-    # Check for Internet connectivity
     if ! ping -c1 1.1.1.1 &>/dev/null; then
         echo "No internet connection detected. Please check your network."
         exit 1
@@ -37,7 +35,6 @@ initial_verification() {
 
 # Prompt for user inputs
 user_input() {
-    # Default variables
     DEFAULT_HOSTNAME=$(hostname)
     DEFAULT_SSH_PORT=22
     DEFAULT_USERNAME=el
@@ -52,98 +49,57 @@ user_input() {
     DEFAULT_INSTALL_DOCKER=y
     DEFAULT_AUTOREBOOT=n
     
-    # Choose Hostname
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
     HOSTNAME=${HOSTNAME:-$DEFAULT_HOSTNAME}
-    echo "You have selected $HOSTNAME as the server Hostname"
 
-    # Choose SSH port
     read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
     SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
-    echo "You have selected port $SSH_PORT for SSH"
 
-    # Create a new user or input an existing user
     read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
     USERNAME=${USERNAME:-$DEFAULT_USERNAME}
-    echo "You have selected user $USERNAME"
 
-    # Add new user to sudoers if desired
     read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
     ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
-    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
-        echo "User $USERNAME will be added to sudoers."
-    fi
 
-    # If user does not exist, ask for password
     if ! id "$USERNAME" &>/dev/null; then
         read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
-        echo "Password will be set for $USERNAME"
     fi
 
-    # Ask for SSH key if desired
     read -p "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): " SSH_KEY
 
-    # If SSH key is provided, ask if password authentication should be disabled
     if [[ -n "$SSH_KEY" ]]; then
         echo "SSH key: $SSH_KEY will be set for $USERNAME"
         read -p "Do you want to disable password authentication for SSH? (y/n, press Enter to choose $DEFAULT_DISABLE_PASSWORD_AUTH): " DISABLE_PASSWORD_AUTH
         DISABLE_PASSWORD_AUTH=${DISABLE_PASSWORD_AUTH:-$DEFAULT_DISABLE_PASSWORD_AUTH}
-        if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
-            echo "SSH Password authentication will be disabled"
-        fi
     fi
 
-    # Wireguard Installation
     read -p "Do you want to install Wireguard? (y/n, press Enter to choose $DEFAULT_INSTALL_WG): " INSTALL_WG
     INSTALL_WG=${INSTALL_WG:-$DEFAULT_INSTALL_WG}
     
-    # If Wireguard is to be installed, ask for additional information
     if [[ "$INSTALL_WG" == "y" ]]; then
-        echo "Wireguard will be installed"
-
-        # Choose the network interface used for internet connectivity
         read -p "Enter the WAN Interface you would like to use for Wireguard (press Enter to choose $DEFAULT_WAN_INTERFACE): " WAN_INTERFACE
         WAN_INTERFACE=${WAN_INTERFACE:-$DEFAULT_WAN_INTERFACE}
-        echo "You have selected $WAN_INTERFACE as the server WAN's Interface for Wireguard"
 
-        # Choose the WAN Endpoint of the server
         read -p "Enter the public IP address / Domain Name of the server to be used for Wireguard (press Enter to choose $DEFAULT_ENDPOINT): " ENDPOINT
         ENDPOINT=${ENDPOINT:-$DEFAULT_ENDPOINT}
-        echo "You have selected $ENDPOINT as the server WAN's Endpoint for Wireguard"
 
-        # Choose Wireguard VPN port
         read -p "Enter the Wireguard VPN port you wish to use (press Enter to choose $DEFAULT_WIREGUARD_PORT): " WIREGUARD_PORT
         WIREGUARD_PORT=${WIREGUARD_PORT:-$DEFAULT_WIREGUARD_PORT}
-        echo "You have selected port $WIREGUARD_PORT for Wireguard"
     fi
 
-    # ZFS Installation
     read -p "Do you want to install ZFS? (y/n, press Enter to choose $DEFAULT_INSTALL_ZFS): " INSTALL_ZFS
     INSTALL_ZFS=${INSTALL_ZFS:-$DEFAULT_INSTALL_ZFS}
-    if [[ "$INSTALL_ZFS" == "y" ]]; then
-        echo "ZFS will be installed"
-    fi
 
-    # Virtualization Installation
+
     read -p "Do you want to install Virtualization packages? (y/n, press Enter to choose $DEFAULT_INSTALL_VIRT): " INSTALL_VIRT
     INSTALL_VIRT=${INSTALL_VIRT:-$DEFAULT_INSTALL_VIRT}
-    if [[ "$INSTALL_VIRT" == "y" ]]; then
-        echo "Virtualization packages will be installed"
-    fi
 
-    # Docker Installation
     read -p "Do you want to install Docker Engine? (y/n, press Enter to choose $DEFAULT_INSTALL_DOCKER): " INSTALL_DOCKER
     INSTALL_DOCKER=${INSTALL_DOCKER:-$DEFAULT_INSTALL_DOCKER}
-    if [[ "$INSTALL_DOCKER" == "y" ]]; then
-        echo "Docker Engine will be installed"
-    fi
 
-    # Autoreboot
     read -p "Do you want to autoreboot the system at the end of the script? (y/n, press Enter to choose $DEFAULT_AUTOREBOOT): " AUTOREBOOT
     AUTOREBOOT=${AUTOREBOOT:-$DEFAULT_AUTOREBOOT}
-    if [[ "$AUTOREBOOT" == "y" ]]; then
-        echo "Server will autoreboot at the end of the script"
-    fi
+
 
     # Confirm user choices
     echo ""
@@ -297,6 +253,7 @@ install_system_services() {
     apt install -y ufw fail2ban
 }
 
+# Install Wireguard
 install_wireguard() {
     echo "Installing Wireguard..."
     apt install -y wireguard
