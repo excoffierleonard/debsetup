@@ -12,8 +12,8 @@
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: ADD option for timezone selection
-# TOFIX: CENTRALIZE DOWNLOADS order download them first then move them in the setup part
 # TOFIX: ADD default zfs and virt and docker to user input
+# TODO: Maybe centralize rms of downloads
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -247,43 +247,46 @@ install_defaultrepo_tools() {
 # Centralize necessary downloads based on user input
 centralize_downloads() {
     echo "Centralizing necessary downloads based on choices..."
+    mkdir -p /downloads
 
     # Always download Zsh configuration and Wireguard configuration files
-    curl -o /etc/skel/.zshrc $ZSHRC_FILE
-    curl -o /etc/wireguard/wg0.conf $WG0_CONF
-    curl -o /etc/wireguard/newpeer.sh $NEWPEER_SH
+    curl -o /downloads/.zshrc $ZSHRC_FILE
+    curl -o /downloads/wg0.conf $WG0_CONF
+    curl -o /downloads/newpeer.sh $NEWPEER_SH
 
     # Conditional downloads based on user selections
 
     # If Lazygit is installed (part of tools), download it
     echo "Preparing to download Lazygit..."
     LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\K[^"]*')
-    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    curl -Lo /downloads/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
 
     # If Duplicacy is needed (part of tools), download it
     echo "Preparing to download Duplicacy..."
-    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
+    curl -fsSL $DUPLICACY_RELEASE -o /downloads/duplicacy
 
     # If Docker is to be installed, download Docker script and Lazydocker
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
         echo "Preparing to download Docker installation script and Lazydocker..."
-        curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
-        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o lazydocker_install.sh
+        curl -fsSL $DOCKER_INSTALL_SCRIPT -o /downloads/get-docker.sh
+        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o /downloads/lazydocker_install.sh
     fi
 }
 
 # Install Lazygit
 install_lazygit() {
-    tar xf lazygit.tar.gz lazygit
-    install lazygit /usr/local/bin
-    rm lazygit.tar.gz
-    rm lazygit
+    tar xf /downloads/lazygit.tar.gz /downloads/lazygit
+    install /downloads/lazygit /usr/local/bin
+    rm /downloads/lazygit.tar.gz
+    rm /downloads/lazygit
 }
 
 # Install Duplicacy
 install_duplicacy() {
     echo "Installing Duplicacy..."
+    cp /downloads/duplicacy /usr/local/bin/
     chmod +x /usr/local/bin/duplicacy
+    rm /downloads/duplicacy
 }
 
 # Install system services (system background processes)
@@ -310,15 +313,16 @@ install_virt() {
 # Install Lazydocker
 install_lazydocker() {
     echo "Installing Lazydocker..."
-    bash lazydocker_install.sh
+    bash /downloads/lazydocker_install.sh
     apt install lazydocker
+    rm /downloads/lazydocker_install.sh
 }
 
 # Install Docker Engine
 install_docker() {
     echo "Installing Docker Engine..."
-    sh get-docker.sh
-    rm get-docker.sh
+    sh /downloads/get-docker.sh
+    rm /downloads/get-docker.sh
 }
 
 # Setup User
@@ -332,12 +336,14 @@ setup_user() {
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
+    cp /downloads/.zshrc /etc/skel/
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
     chsh -s /bin/zsh root
     cp /etc/skel/.zshrc /home/$USERNAME/
     chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
     chsh -s /bin/zsh $USERNAME
+    rm /downloads/.zshrc
 }
 
 # Setup UFW (Uncomplicated Firewall)
@@ -366,6 +372,7 @@ setup_fail2ban() {
 # Wireguard Setup
 setup_wireguard() {
     echo "Setting up Wireguard..."
+    cp /downloads/wg0.conf /etc/wireguard/
     umask 077
     wg genkey > /etc/wireguard/privatekey
     wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
@@ -377,13 +384,16 @@ setup_wireguard() {
     wg-quick up wg0
     systemctl enable wg-quick@wg0.service
     umask 022
+    rm /downloads/wg0.conf
 }
 
 # Get newpeer.sh script
 setup_newpeer() {
     echo "Downloading and setting up the newpeer.sh script for Wireguard..."
+    cp /downloads/newpeer.sh /etc/wireguard/
     sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
+    rm /downloads/newpeer.sh
 }
 
 # End of script actions
