@@ -240,12 +240,6 @@ create_user() {
     fi
 }
 
-# Change the system time zone
-change_timezone() {
-    echo "Changing time zone to EST..."
-    timedatectl set-timezone America/New_York
-}
-
 # Changing login page formatting, removing default MOTDs
 change_login_page() {
     echo "Changing login page formatting, removing default MOTDs..."
@@ -260,7 +254,7 @@ change_login_page() {
 # Install default repository tools (session based)
 install_defaultrepo_tools() {
     echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq
 }
 
 # Centralize necessary downloads based on user input
