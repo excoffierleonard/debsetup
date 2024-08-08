@@ -1,14 +1,5 @@
 #!/bin/bash
 
-# External links centralized
-DOCKER_INSTALL_SCRIPT="https://get.docker.com"
-DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
-LAZYDOCKER_INSTALL_SCRIPT="https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository"
-LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
-ZSHRC_FILE="https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc"
-WG0_CONF="https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf"
-NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
-
 # TODO: Add a one click option for full defaults
 # TODO: Add an options to segment installation of what I want
 # TODO: Better segment initial_setup and group of tools
@@ -20,6 +11,15 @@ NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
 # TODO: Explicitly say that root password will be disabled and ssh key will be used
 # TODO: Add checks so script is run twice with no problem
 # TODO: Maybe do not force zsh config for all users
+
+# External links centralized
+DOCKER_INSTALL_SCRIPT="https://get.docker.com"
+DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
+LAZYDOCKER_INSTALL_SCRIPT="https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository"
+LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
+ZSHRC_FILE="https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc"
+WG0_CONF="https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf"
+NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
 
 # Initial requirement verifications
 initial_verification() {
@@ -49,7 +49,7 @@ user_input() {
 
     # Choose the network interface used for internet connectivity
     DEFAULT_ROUTE=$(ip route get 1.1.1.1)
-    WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \\K\\S+')
+    WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
     WAN_INTERFACE=$(prompt_with_default "Enter the WAN Interface you would like to use" "$WAN_INTERFACE_DEFAULT")
     echo "You have selected $WAN_INTERFACE as the server WAN's Interface"
 
@@ -123,7 +123,7 @@ centralize_downloads() {
 
     # If Lazygit is installed (part of tools), download it
     echo "Preparing to download Lazygit..."
-    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\\\\K[^"]*')
+    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\K[^"]*')
     curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
 
     # If Duplicacy is needed (part of tools), download it
@@ -317,7 +317,7 @@ setup_fail2ban() {
     echo "Setting up Fail2Ban..."
     cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
     cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-    sed -i "/^\\[sshd\\]$/,/^\\[/ s/port\\s*=\\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
+    sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
     systemctl enable fail2ban
     systemctl restart fail2ban
 }
