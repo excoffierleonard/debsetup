@@ -55,6 +55,7 @@ user_input() {
     DEFAULT_INSTALL_ZFS=y
     DEFAULT_INSTALL_VIRT=y
     DEFAULT_INSTALL_DOCKER=y
+    $DEFAULT_AUTOREBOOT=n
     
     # Choose Hostname
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
@@ -132,6 +133,11 @@ user_input() {
     INSTALL_DOCKER=${INSTALL_DOCKER:-$DEFAULT_INSTALL_DOCKER}
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 
+    # Autoreboot
+    read -p "Do you want to autoreboot the system at the end of the script? (y/n, press Enter to choose $DEFAULT_AUTOREBOOT): " AUTOREBOOT
+    AUTOREBOOT=${AUTOREBOOT:-$DEFAULT_AUTOREBOOT}
+    echo "You have selected $AUTOREBOOT for autoreboot at the end of the script"
+
     # Confirm user choices
     echo ""
     echo "You have selected the following options:"
@@ -161,6 +167,9 @@ user_input() {
     fi
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
         echo "Installing Docker Engine"
+    fi
+    if [[ "$AUTOREBOOT" == "y" ]]; then
+        echo "Autoreboot at the end of the script"
     fi
     read -p "Do you want to proceed with these settings? (y/n): " PROCEED
     if [[ "$PROCEED" != "y" ]]; then
@@ -440,14 +449,23 @@ recap() {
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
         echo "Installing Docker Engine"
     fi
+    if [[ "$AUTOREBOOT" == "y" ]]; then
+        echo "Autoreboot at the end of the script"
+    fi
 }
 
 # Ask the user if they want to reboot the system
 reboot_system() {
     echo ""
-    read -p "Setup completed, please reboot your system, do you want to reboot the system now? (y/n): " REBOOT
-    if [[ "$REBOOT" == "y" ]]; then
+    if [[ "$AUTOREBOOT" == "y" ]]; then
+        echo "Setup completed, system will reboot in 10 seconds..."
+        sleep 10
         reboot
+    else
+        read -p "Setup completed, please reboot your system, do you want to reboot the system now? (y/n): " REBOOT
+        if [[ "$REBOOT" == "y" ]]; then
+            reboot
+        fi
     fi
 }
 
