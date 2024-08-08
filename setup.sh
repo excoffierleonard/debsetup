@@ -149,9 +149,6 @@ initial_setup() {
     apt update
     apt full-upgrade -y
 
-    # Download necessary files based on user input
-    centralize_downloads
-
     # Create the user if necessary and set the password
     if ! id "$USERNAME" &>/dev/null; then
         echo "Creating user $USERNAME..."
@@ -192,6 +189,10 @@ install_duplicacy() {
 install_tools() {
     echo "Installing tools..."
     apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
+    
+    # Download necessary files based on user input
+    centralize_downloads
+
     install_lazygit
     install_duplicacy
 }
