@@ -132,6 +132,33 @@ user_input() {
     read -p "Do you want to install Docker Engine? (y/n, press Enter to choose 'y'): " INSTALL_DOCKER
     INSTALL_DOCKER=${INSTALL_DOCKER:-y}
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
+
+    # Confirm user choices
+    echo "You have selected the following options:"
+    echo "Hostname: $HOSTNAME"
+    echo "SSH Port: $SSH_PORT"
+    echo "Username: $USERNAME"
+    echo "Add $USERNAME to sudoers: $ADD_TO_SUDOERS"
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "SSH Key: $SSH_KEY"
+    fi
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "Disable Password Authentication: $DISABLE_PASSWORD_AUTH"
+    fi
+    echo "Install Wireguard: $INSTALL_WG"
+    if [[ "$INSTALL_WG" == "y" ]]; then
+        echo "WAN Interface: $WAN_INTERFACE"
+        echo "WAN Endpoint: $ENDPOINT"
+        echo "Wireguard Port: $WIREGUARD_PORT"
+    fi
+    echo "Install ZFS: $INSTALL_ZFS"
+    echo "Install Virtualization packages: $INSTALL_VIRT"
+    echo "Install Docker Engine: $INSTALL_DOCKER"
+    read -p "Do you want to proceed with these settings? (y/n): " PROCEED
+    if [[ "$PROCEED" != "y" ]]; then
+        echo "Exiting script..."
+        exit 1
+    fi
 }
 
 # Initial script options
@@ -362,6 +389,30 @@ cleanup() {
     apt autoremove -y
     rm debsetup.sh
     unset DEBIAN_FRONTEND
+}
+
+# Recap of script actions
+recap() {
+    echo "Recap of script actions..."
+    echo "Hostname: $HOSTNAME"
+    echo "SSH Port: $SSH_PORT"
+    echo "Username: $USERNAME"
+    echo "Add $USERNAME to sudoers: $ADD_TO_SUDOERS"
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "SSH Key: $SSH_KEY"
+    fi
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "Disable Password Authentication: $DISABLE_PASSWORD_AUTH"
+    fi
+    echo "Install Wireguard: $INSTALL_WG"
+    if [[ "$INSTALL_WG" == "y" ]]; then
+        echo "WAN Interface: $WAN_INTERFACE"
+        echo "WAN Endpoint: $ENDPOINT"
+        echo "Wireguard Port: $WIREGUARD_PORT"
+    fi
+    echo "Install ZFS: $INSTALL_ZFS"
+    echo "Install Virtualization packages: $INSTALL_VIRT"
+    echo "Install Docker Engine: $INSTALL_DOCKER"
     echo "Basic setup completed. Please reboot your server."
 }
 
@@ -414,8 +465,9 @@ setup() {
     fi
 }
 
-cleanup() {
+end_of_script() {
     cleanup
+    recap
 }
 
 # Functions order level 1
@@ -428,7 +480,7 @@ execution() {
     local_modifications
     install
     setup
-    cleanup
+    end_of_script
 }
 
 # Functions order level 0
