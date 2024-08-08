@@ -440,26 +440,16 @@ reboot_system() {
 
 
 # Order of functions
-# Functions order level 2
-init() {
+main() {
     initial_verification
     user_input
-}
-
-initial_setup() {
     initial_script_options
     full_upgrade
-}
-
-local_modifications() {
     create_user
     change_hostname
     change_timezone
     change_login_page
     secure_ssh
-}
-
-install() {
     install_defaultrepo_tools
     centralize_downloads
     install_lazygit
@@ -475,9 +465,6 @@ install() {
         install_docker
         install_lazydocker
     fi
-}
-
-setup() {
     setup_user
     setup_zsh
     setup_ufw
@@ -486,35 +473,10 @@ setup() {
         setup_wireguard
         setup_newpeer
     fi
-}
-
-end_of_script() {
     cleanup
     recap
     reboot_system
 }
 
-
-# Functions order level 1
-no_execution() {
-    init
-}
-
-execution() {
-    initial_setup
-    local_modifications
-    install
-    setup
-    end_of_script
-}
-
-
-# Functions order level 0
-main() {
-    no_execution
-    time execution
-}
-
-
 # Run the script
-main
+time main
