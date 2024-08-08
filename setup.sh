@@ -14,8 +14,8 @@
 # TODO: ADD option for timezone selection
 # FIX : ADD default zfs and virt and docker to user input
 # TODO: Maybe centralize rms of downloads
-# FIX: Loop of install_defaultrepo_tools and centralize_downloads
 # TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
+# FIX: Correctly set time function to ignore initial verification and user input
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
