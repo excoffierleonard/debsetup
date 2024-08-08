@@ -262,23 +262,13 @@ centralize_downloads() {
     echo "Centralizing necessary downloads based on choices..."
     mkdir -p /downloads
 
-    # Always download Zsh configuration and Wireguard configuration files
+    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | jq -r '.tag_name' | sed 's/^v//')
+    curl -Lo /downloads/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    curl -fsSL $DUPLICACY_RELEASE -o /downloads/duplicacy
     curl -o /downloads/.zshrc $ZSHRC_FILE
     curl -o /downloads/wg0.conf $WG0_CONF
     curl -o /downloads/newpeer.sh $NEWPEER_SH
 
-    # Conditional downloads based on user selections
-
-    # If Lazygit is installed (part of tools), download it
-    echo "Preparing to download Lazygit..."
-    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\K[^"]*')
-    curl -Lo /downloads/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-
-    # If Duplicacy is needed (part of tools), download it
-    echo "Preparing to download Duplicacy..."
-    curl -fsSL $DUPLICACY_RELEASE -o /downloads/duplicacy
-
-    # If Docker is to be installed, download Docker script and Lazydocker
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
         echo "Preparing to download Docker installation script and Lazydocker..."
         curl -fsSL $DOCKER_INSTALL_SCRIPT -o /downloads/get-docker.sh
