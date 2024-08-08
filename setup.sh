@@ -241,7 +241,6 @@ secure_ssh() {
 install_defaultrepo_tools() {
     echo "Installing tools..."
     apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
-
 }
 
 # Centralize necessary downloads based on user input
