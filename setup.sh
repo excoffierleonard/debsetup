@@ -11,8 +11,6 @@
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: ADD option for timezone selection
-# TODO: Maybe centralize rms of downloads
-# TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -202,37 +200,10 @@ full_upgrade() {
     apt full-upgrade -y
 }
 
-# Create the user if necessary and set the password
-create_user() {
-    if ! id "$USERNAME" &>/dev/null; then
-        echo "Creating user $USERNAME..."
-        useradd -m "$USERNAME"
-        echo "$USERNAME:$USER_PASSWORD" | chpasswd
-        echo "User $USERNAME created with specified password."
-    fi
-}
-
 # Change the system hostname
 change_hostname() {
     echo "Changing the system hostname..."
     hostnamectl set-hostname "$HOSTNAME"
-}
-
-# Change the system time zone
-change_timezone() {
-    echo "Changing time zone to EST..."
-    timedatectl set-timezone America/New_York
-}
-
-# Changing login page formatting, removing default MOTDs
-change_login_page() {
-    echo "Changing login page formatting, removing default MOTDs..."
-    cp /etc/issue /etc/issue.backup
-    cp /etc/motd /etc/motd.backup
-    tar -czf /etc/update-motd.d_backup.tar.gz /etc/update-motd.d
-    echo -n "" > /etc/issue
-    echo -n "" > /etc/motd
-    chmod -x /etc/update-motd.d/*
 }
 
 # Secure SSH
@@ -257,6 +228,33 @@ secure_ssh() {
         echo "Password authentication disabled for SSH."
     fi
     systemctl restart ssh
+}
+
+# Create the user if necessary and set the password
+create_user() {
+    if ! id "$USERNAME" &>/dev/null; then
+        echo "Creating user $USERNAME..."
+        useradd -m "$USERNAME"
+        echo "$USERNAME:$USER_PASSWORD" | chpasswd
+        echo "User $USERNAME created with specified password."
+    fi
+}
+
+# Change the system time zone
+change_timezone() {
+    echo "Changing time zone to EST..."
+    timedatectl set-timezone America/New_York
+}
+
+# Changing login page formatting, removing default MOTDs
+change_login_page() {
+    echo "Changing login page formatting, removing default MOTDs..."
+    cp /etc/issue /etc/issue.backup
+    cp /etc/motd /etc/motd.backup
+    tar -czf /etc/update-motd.d_backup.tar.gz /etc/update-motd.d
+    echo -n "" > /etc/issue
+    echo -n "" > /etc/motd
+    chmod -x /etc/update-motd.d/*
 }
 
 # Install default repository tools (session based)
@@ -494,11 +492,11 @@ main() {
     {    
       initial_script_options
       full_upgrade
-      create_user
       change_hostname
+      secure_ssh
+      create_user
       change_timezone
       change_login_page
-      secure_ssh
       
       install_defaultrepo_tools
       centralize_downloads
