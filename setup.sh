@@ -10,7 +10,6 @@
 # TODO: Make default usernam dynamic
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
-# TODO: ADD option for timezone selection
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -254,7 +253,7 @@ change_login_page() {
 # Install default repository tools (session based)
 install_defaultrepo_tools() {
     echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck
 }
 
 # Centralize necessary downloads based on user input
