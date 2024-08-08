@@ -14,7 +14,6 @@
 # TODO: ADD option for timezone selection
 # TODO: Maybe centralize rms of downloads
 # TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
-# TODO: Make Recap dynamic with if satements do not display not installed packages
 # TODO: Add option autoreboot at end of script
 
 # External links centralized
@@ -139,22 +138,30 @@ user_input() {
     echo "Hostname: $HOSTNAME"
     echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
-    echo "Add $USERNAME to sudoers: $ADD_TO_SUDOERS"
+    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+        echo "Adding $USERNAME to sudoers"
+    fi
     if [[ -n "$SSH_KEY" ]]; then
         echo "SSH Key: $SSH_KEY"
     fi
-    if [[ -n "$SSH_KEY" ]]; then
-        echo "Disable Password Authentication: $DISABLE_PASSWORD_AUTH"
+    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+        echo "Disabling password authentication for SSH"
     fi
-    echo "Install Wireguard: $INSTALL_WG"
     if [[ "$INSTALL_WG" == "y" ]]; then
+        echo "Installing Wireguard"
         echo "WAN Interface: $WAN_INTERFACE"
         echo "WAN Endpoint: $ENDPOINT"
         echo "Wireguard Port: $WIREGUARD_PORT"
     fi
-    echo "Install ZFS: $INSTALL_ZFS"
-    echo "Install Virtualization packages: $INSTALL_VIRT"
-    echo "Install Docker Engine: $INSTALL_DOCKER"
+    if [[ "$INSTALL_ZFS" == "y" ]]; then
+        echo "Installing ZFS"
+    fi
+    if [[ "$INSTALL_VIRT" == "y" ]]; then
+        echo "Installing Virtualization packages"
+    fi
+    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+        echo "Installing Docker Engine"
+    fi
     read -p "Do you want to proceed with these settings? (y/n): " PROCEED
     if [[ "$PROCEED" != "y" ]]; then
         echo "Exiting script..."
@@ -409,22 +416,30 @@ recap() {
     echo "Hostname: $HOSTNAME"
     echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
-    echo "Add $USERNAME to sudoers: $ADD_TO_SUDOERS"
+    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+        echo "Adding $USERNAME to sudoers"
+    fi
     if [[ -n "$SSH_KEY" ]]; then
         echo "SSH Key: $SSH_KEY"
     fi
-    if [[ -n "$SSH_KEY" ]]; then
-        echo "Disable Password Authentication: $DISABLE_PASSWORD_AUTH"
+    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+        echo "Disabling password authentication for SSH"
     fi
-    echo "Install Wireguard: $INSTALL_WG"
     if [[ "$INSTALL_WG" == "y" ]]; then
+        echo "Installing Wireguard"
         echo "WAN Interface: $WAN_INTERFACE"
         echo "WAN Endpoint: $ENDPOINT"
         echo "Wireguard Port: $WIREGUARD_PORT"
     fi
-    echo "Install ZFS: $INSTALL_ZFS"
-    echo "Install Virtualization packages: $INSTALL_VIRT"
-    echo "Install Docker Engine: $INSTALL_DOCKER"
+    if [[ "$INSTALL_ZFS" == "y" ]]; then
+        echo "Installing ZFS"
+    fi
+    if [[ "$INSTALL_VIRT" == "y" ]]; then
+        echo "Installing Virtualization packages"
+    fi
+    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+        echo "Installing Docker Engine"
+    fi
 }
 
 # Ask the user if they want to reboot the system
