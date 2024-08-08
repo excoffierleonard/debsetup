@@ -15,6 +15,7 @@
 # FIX : ADD default zfs and virt and docker to user input
 # TODO: Maybe centralize rms of downloads
 # FIX: Loop of install_defaultrepo_tools and centralize_downloads
+# TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -42,15 +43,6 @@ initial_verification() {
 
 # Prompt for user inputs
 user_input() {
-    # Function to prompt for input with a default value
-    prompt_with_default() {
-        local prompt="$1"
-        local default="$2"
-        local var
-        read -p "$prompt (press Enter to choose $default): " var
-        echo "${var:-$default}"
-    }
-
     # Default variables
     DEFAULT_HOSTNAME=$(hostname)
     DEFAULT_SSH_PORT=22
