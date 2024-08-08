@@ -16,6 +16,8 @@
 # TODO: Maybe centralize rms of downloads
 # TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
 # FIX: Correctly set time function to ignore initial verification and user input
+# TODO: Make Recap dynamic with if satements do not display not installed packages
+# TODO: Add option autoreboot at end of script
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -400,7 +402,8 @@ cleanup() {
 
 # Recap of script actions
 recap() {
-    echo "Recap of script actions..."
+    echo ""
+    echo "Recap of script actions:"
     echo "Hostname: $HOSTNAME"
     echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
@@ -424,6 +427,7 @@ recap() {
 
 # Ask the user if they want to reboot the system
 reboot_system() {
+    echo ""
     read -p "Setup completed, please reboot your system, do you want to reboot the system now? (y/n): " REBOOT
     if [[ "$REBOOT" == "y" ]]; then
         reboot
@@ -433,42 +437,51 @@ reboot_system() {
 
 # Order of functions
 main() {
-    initial_verification
-    user_input
-    initial_script_options
-    full_upgrade
-    create_user
-    change_hostname
-    change_timezone
-    change_login_page
-    secure_ssh
-    install_defaultrepo_tools
-    centralize_downloads
-    install_lazygit
-    install_duplicacy
-    install_system_services
-    if [[ "$INSTALL_ZFS" == "y" ]]; then
+  initial_verification
+  user_input
+  
+  time (
+    {    
+      initial_script_options
+      full_upgrade
+      create_user
+      change_hostname
+      change_timezone
+      change_login_page
+      secure_ssh
+      
+      install_defaultrepo_tools
+      centralize_downloads
+      install_lazygit
+      install_duplicacy
+      install_system_services
+      if [[ "$INSTALL_ZFS" == "y" ]]; then
         install_zfs
-    fi
-    if [[ "$INSTALL_VIRT" == "y" ]]; then
+      fi
+      if [[ "$INSTALL_VIRT" == "y" ]]; then
         install_virt
-    fi
-    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+      fi
+      if [[ "$INSTALL_DOCKER" == "y" ]]; then
         install_docker
         install_lazydocker
-    fi
-    setup_user
-    setup_zsh
-    setup_ufw
-    setup_fail2ban
-    if [[ "$INSTALL_WG" == "y" ]]; then
+      fi
+      
+      setup_user
+      setup_zsh
+      setup_ufw
+      setup_fail2ban
+      if [[ "$INSTALL_WG" == "y" ]]; then
         setup_wireguard
         setup_newpeer
-    fi
-    cleanup
-    recap
-    reboot_system
+      fi
+      
+      cleanup
+      recap
+    }
+  )
+  
+  reboot_system
 }
 
 # Run the script
-time main
+main
