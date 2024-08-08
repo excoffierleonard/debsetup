@@ -53,7 +53,7 @@ user_input() {
     DEFAULT_INSTALL_ZFS=y
     DEFAULT_INSTALL_VIRT=y
     DEFAULT_INSTALL_DOCKER=y
-    $DEFAULT_AUTOREBOOT=n
+    DEFAULT_AUTOREBOOT=n
     
     # Choose Hostname
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
