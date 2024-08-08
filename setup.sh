@@ -370,6 +370,14 @@ setup_zsh() {
     rm /downloads/.zshrc
 }
 
+# Auto change timezone to closest server
+setup_timezone() {
+    echo "Auto changing timezone to closest server..."
+    CLOSEST_SERVER=$(curl -s http://worldtimeapi.org/api/ip | jq -r '.timezone')
+    timedatectl set-timezone "$CLOSEST_SERVER"
+    echo "Timezone changed to $CLOSEST_SERVER"
+}
+
 # Setup UFW (Uncomplicated Firewall)
 setup_ufw() {
     echo "Setting up UFW..."
@@ -490,44 +498,44 @@ main() {
   
   time (
     {    
-      initial_script_options
-      full_upgrade
-      change_hostname
-      secure_ssh
-      create_user
-      change_timezone
-      change_login_page
-      
-      install_defaultrepo_tools
-      centralize_downloads
-      install_lazygit
-      install_duplicacy
-      install_system_services
-      if [[ "$INSTALL_WG" == "y" ]]; then
-        install_wireguard
-      fi
-      if [[ "$INSTALL_ZFS" == "y" ]]; then
-        install_zfs
-      fi
-      if [[ "$INSTALL_VIRT" == "y" ]]; then
-        install_virt
-      fi
-      if [[ "$INSTALL_DOCKER" == "y" ]]; then
-        install_docker
-        install_lazydocker
-      fi
-      
-      setup_user
-      setup_zsh
-      setup_ufw
-      setup_fail2ban
-      if [[ "$INSTALL_WG" == "y" ]]; then
-        setup_wireguard
-        setup_newpeer
-      fi
-      
-      cleanup
-      recap
+        initial_script_options
+        full_upgrade
+        change_hostname
+        secure_ssh
+        create_user
+        change_login_page
+        
+        install_defaultrepo_tools
+        centralize_downloads
+        install_lazygit
+        install_duplicacy
+        install_system_services
+        if [[ "$INSTALL_WG" == "y" ]]; then
+            install_wireguard
+        fi
+        if [[ "$INSTALL_ZFS" == "y" ]]; then
+            install_zfs
+        fi
+        if [[ "$INSTALL_VIRT" == "y" ]]; then
+            install_virt
+        fi
+        if [[ "$INSTALL_DOCKER" == "y" ]]; then
+            install_docker
+            install_lazydocker
+        fi
+        
+        setup_user
+        setup_zsh
+        setup_timezone
+        setup_ufw
+        setup_fail2ban
+        if [[ "$INSTALL_WG" == "y" ]]; then
+            setup_wireguard
+            setup_newpeer
+        fi
+        
+        cleanup
+        recap
     }
   )
   
