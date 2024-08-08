@@ -12,7 +12,7 @@
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: ADD option for timezone selection
-# TOFIX: CENTRALIZE DOWNLOADS order
+# TOFIX: CENTRALIZE DOWNLOADS order download them first then move them in the setup part
 # TOFIX: ADD default zfs and virt and docker to user input
 
 # External links centralized
