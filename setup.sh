@@ -12,7 +12,7 @@
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: ADD option for timezone selection
-# TOFIX: ADD default zfs and virt and docker to user input
+# FIX : ADD default zfs and virt and docker to user input
 # TODO: Maybe centralize rms of downloads
 
 # External links centralized
@@ -275,7 +275,7 @@ centralize_downloads() {
 
 # Install Lazygit
 install_lazygit() {
-    tar xf /downloads/lazygit.tar.gz /downloads/lazygit
+    tar xf /downloads/lazygit.tar.gz -C /downloads/ lazygit
     install /downloads/lazygit /usr/local/bin
     rm /downloads/lazygit.tar.gz
     rm /downloads/lazygit
