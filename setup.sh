@@ -12,10 +12,8 @@
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: ADD option for timezone selection
-# FIX : ADD default zfs and virt and docker to user input
 # TODO: Maybe centralize rms of downloads
 # TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
-# FIX: Correctly set time function to ignore initial verification and user input
 # TODO: Make Recap dynamic with if satements do not display not installed packages
 # TODO: Add option autoreboot at end of script
 
@@ -55,6 +53,9 @@ user_input() {
     DEFAULT_WIREGUARD_PORT=51820
     DEFAULT_WAN_INTERFACE=$(ip route get 1.1.1.1 | grep -oP 'dev \K\S+')
     DEFAULT_ENDPOINT=$(wget -qO- http://ipinfo.io/ip)
+    DEFAULT_INSTALL_ZFS=y
+    DEFAULT_INSTALL_VIRT=y
+    DEFAULT_INSTALL_DOCKER=y
     
     # Choose Hostname
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
@@ -118,18 +119,18 @@ user_input() {
     fi
 
     # ZFS Installation
-    read -p "Do you want to install ZFS? (y/n, press Enter to choose 'y'): " INSTALL_ZFS
-    INSTALL_ZFS=${INSTALL_ZFS:-y}
+    read -p "Do you want to install ZFS? (y/n, press Enter to choose $DEFAULT_INSTALL_ZFS): " INSTALL_ZFS
+    INSTALL_ZFS=${INSTALL_ZFS:-$DEFAULT_INSTALL_ZFS}
     echo "You have selected $INSTALL_ZFS for ZFS installation"
 
     # Virtualization Installation
-    read -p "Do you want to install Virtualization packages? (y/n, press Enter to choose 'y'): " INSTALL_VIRT
-    INSTALL_VIRT=${INSTALL_VIRT:-y}
+    read -p "Do you want to install Virtualization packages? (y/n, press Enter to choose $DEFAULT_INSTALL_VIRT): " INSTALL_VIRT
+    INSTALL_VIRT=${INSTALL_VIRT:-$DEFAULT_INSTALL_VIRT}
     echo "You have selected $INSTALL_VIRT for Virtualization packages installation"
 
     # Docker Installation
-    read -p "Do you want to install Docker Engine? (y/n, press Enter to choose 'y'): " INSTALL_DOCKER
-    INSTALL_DOCKER=${INSTALL_DOCKER:-y}
+    read -p "Do you want to install Docker Engine? (y/n, press Enter to choose $DEFAULT_INSTALL_DOCKER): " INSTALL_DOCKER
+    INSTALL_DOCKER=${INSTALL_DOCKER:-$DEFAULT_INSTALL_DOCKER}
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 
     # Confirm user choices
