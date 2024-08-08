@@ -123,14 +123,15 @@ user_input() {
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 }
 
-# Initial setup
-initial_setup() {
-    # Begin Setup
+# Initial script options
+initial_script_options() {
     echo "Beginning of Setup..."
     set -e
     export DEBIAN_FRONTEND=noninteractive
+}
 
-    # Update and upgrade system
+# Update and upgrade system
+full_upgrade() {
     echo "Updating and upgrading your system..."
     apt update
     apt full-upgrade -y
@@ -146,14 +147,14 @@ create_user() {
     fi
 }
 
+# Change the system hostname
 change_hostname() {
-    # Change the system hostname
     echo "Changing the system hostname..."
     hostnamectl set-hostname "$HOSTNAME"
 }
 
+# Change the system time zone
 change_timezone() {
-    # Change the system time zone
     echo "Changing time zone to EST..."
     timedatectl set-timezone America/New_York
 }
@@ -275,7 +276,6 @@ install_docker() {
     echo "Installing Docker Engine..."
     sh get-docker.sh
     rm get-docker.sh
-    install_lazydocker
 }
 
 # Setup User
@@ -354,13 +354,16 @@ cleanup() {
     echo "Basic setup completed. Please reboot your server."
 }
 
+# Order of functions
+# Functions order level 2
 init() {
     initial_verification
     user_input
 }
 
 initial_setup() {
-    initial_setup
+    initial_script_options
+    full_upgrade
 }
 
 local_modifications() {
@@ -385,6 +388,7 @@ install() {
     fi
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
         install_docker
+        install_lazydocker
     fi
 }
 
@@ -403,8 +407,12 @@ cleanup() {
     cleanup
 }
 
-main() {
+# Functions order level 1
+no_execution() {
     init
+}
+
+execution() {
     initial_setup
     local_modifications
     install
@@ -412,4 +420,11 @@ main() {
     cleanup
 }
 
+# Functions order level 0
+main() {
+    no_execution
+    time execution
+}
+
+# Run the script
 main
