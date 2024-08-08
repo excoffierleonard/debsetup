@@ -396,6 +396,7 @@ cleanup() {
     apt update
     apt full-upgrade -y
     apt autoremove -y
+    rm -rf /downloads
     rm setup.sh
     unset DEBIAN_FRONTEND
 }
