@@ -9,6 +9,8 @@
 # TODO: Add checks so script is run twice with no problem
 # TODO: Maybe do not force zsh config for all users
 # TODO: Make default usernam dynamic
+# TODO: Add more granular error handling
+# TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -413,8 +415,16 @@ recap() {
     echo "Install ZFS: $INSTALL_ZFS"
     echo "Install Virtualization packages: $INSTALL_VIRT"
     echo "Install Docker Engine: $INSTALL_DOCKER"
-    echo "Basic setup completed. Please reboot your server."
 }
+
+# Ask the user if they want to reboot the system
+reboot_system() {
+    read -p "Setup completed, please reboot your system, do you want to reboot the system now? (y/n): " REBOOT
+    if [[ "$REBOOT" == "y" ]]; then
+        reboot
+    fi
+}
+
 
 # Order of functions
 # Functions order level 2
@@ -468,7 +478,9 @@ setup() {
 end_of_script() {
     cleanup
     recap
+    reboot_system
 }
+
 
 # Functions order level 1
 no_execution() {
@@ -483,11 +495,13 @@ execution() {
     end_of_script
 }
 
+
 # Functions order level 0
 main() {
     no_execution
     time execution
 }
+
 
 # Run the script
 main
