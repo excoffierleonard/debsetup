@@ -313,7 +313,12 @@ install_duplicacy() {
 # Install system services (system background processes)
 install_system_services() {
     echo "Installing system services..."
-    apt install -y ufw fail2ban wireguard
+    apt install -y ufw fail2ban
+}
+
+install_wireguard() {
+    echo "Installing Wireguard..."
+    apt install -y wireguard
 }
 
 # Install ZFS
@@ -500,6 +505,9 @@ main() {
       install_lazygit
       install_duplicacy
       install_system_services
+      if [[ "$INSTALL_WG" == "y" ]]; then
+        install_wireguard
+      fi
       if [[ "$INSTALL_ZFS" == "y" ]]; then
         install_zfs
       fi
