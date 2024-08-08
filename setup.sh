@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # TODO: Add a one click option for full defaults
-# TODO: Add an options to segment installation of what I want
-# TODO: Better segment initial_setup and group of tools
 # TODO: Output a recap before doing modifications and at the end of script
 # TODO: Tell the user how long the isntallation took (or will take if possible), with the time command
 # TODO: Create a dotfile repo for debian server
@@ -110,34 +108,18 @@ user_input() {
     echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
 }
 
-# Centralize necessary downloads based on user input
-centralize_downloads() {
-    echo "Centralizing necessary downloads based on choices..."
+# Initial setup
+initial_setup() {
+    # Begin Setup
+    echo "Beginning of Setup..."
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
 
-    # Always download Zsh configuration and Wireguard configuration files
-    curl -o /etc/skel/.zshrc $ZSHRC_FILE
-    curl -o /etc/wireguard/wg0.conf $WG0_CONF
-    curl -o /etc/wireguard/newpeer.sh $NEWPEER_SH
-
-    # Conditional downloads based on user selections
-
-    # If Lazygit is installed (part of tools), download it
-    echo "Preparing to download Lazygit..."
-    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\K[^"]*')
-    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-
-    # If Duplicacy is needed (part of tools), download it
-    echo "Preparing to download Duplicacy..."
-    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
-
-    # If Docker is to be installed, download Docker script and Lazydocker
-    if [[ "$INSTALL_DOCKER" == "y" ]]; then
-        echo "Preparing to download Docker installation script and Lazydocker..."
-        curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
-        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o lazydocker_install.sh
-    fi
+    # Update and upgrade system
+    echo "Updating and upgrading your system..."
+    apt update
+    apt full-upgrade -y
 }
-
 
 create_user() {
     # Create the user if necessary and set the password
@@ -167,17 +149,74 @@ change_timezone() {
     timedatectl set-timezone America/New_York
 }
 
-# Initial setup
-initial_setup() {
-    # Begin Setup
-    set -e
-    echo "Beginning of Setup..."
-    export DEBIAN_FRONTEND=noninteractive
+# Changing login page formatting, removing default MOTDs
+change_login_page() {
+    echo "Changing login page formatting, removing default MOTDs..."
+    cp /etc/issue /etc/issue.backup
+    cp /etc/motd /etc/motd.backup
+    tar -czf /etc/update-motd.d_backup.tar.gz /etc/update-motd.d
+    echo -n "" > /etc/issue
+    echo -n "" > /etc/motd
+    chmod -x /etc/update-motd.d/*
+}
 
-    # Update and upgrade system
-    echo "Updating and upgrading your system..."
-    apt update
-    apt full-upgrade -y
+# Secure SSH
+secure_ssh() {
+    echo "Securing SSH..."
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+    sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
+    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
+    if [[ -n "$SSH_KEY" ]]; then
+        echo "Adding SSH key to $USERNAME's authorized keys..."
+        mkdir -p "/home/$USERNAME/.ssh"
+        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
+        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
+        chmod 700 "/home/$USERNAME/.ssh"
+        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
+        echo "SSH key added to $USERNAME's authorized keys."
+    fi
+    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+        echo "Disabling password authentication for SSH..."
+        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
+        systemctl restart ssh
+        echo "Password authentication disabled for SSH."
+    fi
+    systemctl restart ssh
+}
+
+# Install default repository tools (session based)
+install_defaultrepo_tools() {
+    echo "Installing tools..."
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
+
+}
+
+# Centralize necessary downloads based on user input
+centralize_downloads() {
+    echo "Centralizing necessary downloads based on choices..."
+
+    # Always download Zsh configuration and Wireguard configuration files
+    curl -o /etc/skel/.zshrc $ZSHRC_FILE
+    curl -o /etc/wireguard/wg0.conf $WG0_CONF
+    curl -o /etc/wireguard/newpeer.sh $NEWPEER_SH
+
+    # Conditional downloads based on user selections
+
+    # If Lazygit is installed (part of tools), download it
+    echo "Preparing to download Lazygit..."
+    LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | grep -Po '"tag_name": "v\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+
+    # If Duplicacy is needed (part of tools), download it
+    echo "Preparing to download Duplicacy..."
+    curl -fsSL $DUPLICACY_RELEASE -o /usr/local/bin/duplicacy
+
+    # If Docker is to be installed, download Docker script and Lazydocker
+    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+        echo "Preparing to download Docker installation script and Lazydocker..."
+        curl -fsSL $DOCKER_INSTALL_SCRIPT -o get-docker.sh
+        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o lazydocker_install.sh
+    fi
 }
 
 # Install Lazygit
@@ -194,16 +233,7 @@ install_duplicacy() {
     chmod +x /usr/local/bin/duplicacy
 }
 
-# Install packages
-install_tools() {
-    echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions
-    centralize_downloads
-    install_lazygit
-    install_duplicacy
-}
-
-# Install system services
+# Install system services (system background processes)
 install_system_services() {
     echo "Installing system services..."
     apt install -y ufw fail2ban wireguard
@@ -248,41 +278,6 @@ setup_zsh() {
     cp /etc/skel/.zshrc /home/$USERNAME/
     chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
     chsh -s /bin/zsh $USERNAME
-}
-
-# Changing login page formatting, removing default MOTDs
-change_login_page() {
-    echo "Changing login page formatting, removing default MOTDs..."
-    cp /etc/issue /etc/issue.backup
-    cp /etc/motd /etc/motd.backup
-    tar -czf /etc/update-motd.d_backup.tar.gz /etc/update-motd.d
-    echo -n "" > /etc/issue
-    echo -n "" > /etc/motd
-    chmod -x /etc/update-motd.d/*
-}
-
-# Secure SSH
-secure_ssh() {
-    echo "Securing SSH..."
-    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-    sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
-    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
-    if [[ -n "$SSH_KEY" ]]; then
-        echo "Adding SSH key to $USERNAME's authorized keys..."
-        mkdir -p "/home/$USERNAME/.ssh"
-        echo "$SSH_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
-        chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh"
-        chmod 700 "/home/$USERNAME/.ssh"
-        chmod 600 "/home/$USERNAME/.ssh/authorized_keys"
-        echo "SSH key added to $USERNAME's authorized keys."
-    fi
-    if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
-        echo "Disabling password authentication for SSH..."
-        sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
-        systemctl restart ssh
-        echo "Password authentication disabled for SSH."
-    fi
-    systemctl restart ssh
 }
 
 # Wireguard Setup
@@ -353,10 +348,15 @@ local_modifications() {
     create_user
     change_hostname
     change_timezone
+    change_login_page
+    secure_ssh
 }
 
 install() {
-    install_tools
+    install_defaultrepo_tools
+    centralize_downloads
+    install_lazygit
+    install_duplicacy
     install_system_services
     if [[ "$INSTALL_ZFS" == "y" ]]; then
         install_zfs
@@ -371,8 +371,6 @@ install() {
 
 setup() {
     setup_zsh
-    change_login_page
-    secure_ssh
     setup_wireguard
     setup_newpeer
     setup_ufw
@@ -386,6 +384,7 @@ cleanup() {
 main() {
     init
     initial_setup
+    local_modifications
     install
     setup
     cleanup
