@@ -45,43 +45,39 @@ user_input() {
         echo "${var:-$default}"
     }
 
-    # Choose the network interface used for internet connectivity
-    DEFAULT_ROUTE=$(ip route get 1.1.1.1)
-    WAN_INTERFACE_DEFAULT=$(echo $DEFAULT_ROUTE | grep -oP 'dev \K\S+')
-    WAN_INTERFACE=$(prompt_with_default "Enter the WAN Interface you would like to use" "$WAN_INTERFACE_DEFAULT")
-    echo "You have selected $WAN_INTERFACE as the server WAN's Interface"
-
-    # Choose the WAN Endpoint of the server
-    public_ip=$(wget -qO- http://ipinfo.io/ip)
-    ENDPOINT=$(prompt_with_default "Enter the public IP address / Domain Name of the server" "$public_ip")
-    echo "You have selected $ENDPOINT as the server WAN's Endpoint"
+    # Default variables
+    DEFAULT_HOSTNAME=$(hostname)
+    DEFAULT_SSH_PORT=22
+    DEFAULT_USERNAME=el
+    DEFAULT_ADD_TO_SUDOERS=y
+    DEFAULT_DISABLE_PASSWORD_AUTH=n
+    DEFAULT_INSTALL_WG=y
+    DEFAULT_WIREGUARD_PORT=51820
+    DEFAULT_WAN_INTERFACE=$(ip route get 1.1.1.1 | grep -oP 'dev \K\S+')
+    DEFAULT_ENDPOINT=$(wget -qO- http://ipinfo.io/ip)
+    
 
     # Choose Hostname
-    current_hostname=$(hostname)
-    HOSTNAME=$(prompt_with_default "Enter system Hostname you wish to use" "$current_hostname")
+    HOSTNAME=$(prompt_with_default "Enter system Hostname you wish to use" "$DEFAULT_HOSTNAME")
     echo "You have selected $HOSTNAME as the server Hostname"
 
     # Choose SSH port
-    SSH_PORT=$(prompt_with_default "Enter the SSH port you wish to use" "22")
+    SSH_PORT=$(prompt_with_default "Enter the SSH port you wish to use" "$DEFAULT_SSH_PORT")
     echo "You have selected port $SSH_PORT for SSH"
 
-    # Choose Wireguard VPN port
-    WIREGUARD_PORT=$(prompt_with_default "Enter the Wireguard VPN port you wish to use" "51820")
-    echo "You have selected port $WIREGUARD_PORT for Wireguard"
-
     # Create a new user or input an existing user
-    USERNAME=$(prompt_with_default "Enter the username of the user you wish to create or use" "el")
+    USERNAME=$(prompt_with_default "Enter the username of the user you wish to create or use" "$DEFAULT_USERNAME")
     echo "You have selected user $USERNAME"
+
+    # Add new user to sudoers if desired
+    ADD_TO_SUDOERS=$(prompt_with_default "Do you want to add $USERNAME to sudoers? (y/n)" "$DEFAULT_ADD_TO_SUDOERS")
+    echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
 
     # Ask for password if user does not exist
     if ! id "$USERNAME" &>/dev/null; then
         read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
         echo "Password will be set for $USERNAME"
     fi
-
-    # Add new user to sudoers if desired
-    ADD_TO_SUDOERS=$(prompt_with_default "Do you want to add $USERNAME to sudoers? (y/n)" "y")
-    echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
 
     # Ask for SSH key if desired
     read -p "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): " SSH_KEY
@@ -91,8 +87,27 @@ user_input() {
 
     # Ask user if they want to disable password authentication
     if [[ -n "$SSH_KEY" ]]; then
-        DISABLE_PASSWORD_AUTH=$(prompt_with_default "Do you want to disable password authentication for SSH? (y/n)" "n")
+        DISABLE_PASSWORD_AUTH=$(prompt_with_default "Do you want to disable password authentication for SSH? (y/n)" "$DEFAULT_DISABLE_PASSWORD_AUTH")
         echo "You have selected $DISABLE_PASSWORD_AUTH to disable password option for SSH"
+    fi
+
+    # Wireguard Installation
+    INSTALL_WG=$(prompt_with_default "Do you want to install Wireguard? (y/n)" "$DEFAULT_INSTALL_WG")
+    echo "You have selected $INSTALL_WG for Wireguard installation"
+
+    if [[ "$INSTALL_WG" == "y" ]]; then
+        # Choose the network interface used for internet connectivity
+        WAN_INTERFACE=$(prompt_with_default "Enter the WAN Interface you would like to use for Wireguard" "$DEFAULT_WAN_INTERFACE")
+        echo "You have selected $WAN_INTERFACE as the server WAN's Interface for Wireguard"
+
+        # Choose the WAN Endpoint of the server
+        ENDPOINT=$(prompt_with_default "Enter the public IP address / Domain Name of the server to be used for Wireguard" "$DEFAULT_ENDPOINT")
+        echo "You have selected $ENDPOINT as the server WAN's Endpoint for Wireguard"
+
+        # Choose Wireguard VPN port
+        WIREGUARD_PORT=$(prompt_with_default "Enter the Wireguard VPN port you wish to use" "$DEFAULT_WIREGUARD_PORT")
+        echo "You have selected port $WIREGUARD_PORT for Wireguard"
+
     fi
 
     # ZFS Installation
@@ -121,19 +136,13 @@ initial_setup() {
     apt full-upgrade -y
 }
 
+# Create the user if necessary and set the password
 create_user() {
-    # Create the user if necessary and set the password
     if ! id "$USERNAME" &>/dev/null; then
         echo "Creating user $USERNAME..."
         useradd -m "$USERNAME"
         echo "$USERNAME:$USER_PASSWORD" | chpasswd
         echo "User $USERNAME created with specified password."
-    fi
-
-    # Add user to sudoers if desired
-    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
-        usermod -aG sudo "$USERNAME"
-        echo "User $USERNAME added to sudoers."
     fi
 }
 
@@ -269,6 +278,14 @@ install_docker() {
     install_lazydocker
 }
 
+# Setup User
+setup_user() {
+    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+        usermod -aG sudo "$USERNAME"
+        echo "User $USERNAME added to sudoers."
+    fi
+}
+
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
@@ -278,6 +295,29 @@ setup_zsh() {
     cp /etc/skel/.zshrc /home/$USERNAME/
     chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
     chsh -s /bin/zsh $USERNAME
+}
+
+# Setup UFW (Uncomplicated Firewall)
+setup_ufw() {
+    echo "Setting up UFW..."
+    ufw allow "$SSH_PORT/tcp"
+    if [[ "$INSTALL_WG" == "y" ]]; then
+        ufw allow "$WIREGUARD_PORT/udp"
+    fi
+    ufw default deny incoming
+    ufw default allow outgoing
+    ufw logging on
+    echo "y" | ufw enable
+}
+
+# Setup Fail2Ban
+setup_fail2ban() {
+    echo "Setting up Fail2Ban..."
+    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
+    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+    sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
+    systemctl enable fail2ban
+    systemctl restart fail2ban
 }
 
 # Wireguard Setup
@@ -301,27 +341,6 @@ setup_newpeer() {
     echo "Downloading and setting up the newpeer.sh script for Wireguard..."
     sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
-}
-
-# Setup UFW (Uncomplicated Firewall)
-setup_ufw() {
-    echo "Setting up UFW..."
-    ufw allow "$SSH_PORT/tcp"
-    ufw allow "$WIREGUARD_PORT/udp"
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw logging on
-    echo "y" | ufw enable
-}
-
-# Setup Fail2Ban
-setup_fail2ban() {
-    echo "Setting up Fail2Ban..."
-    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.conf.backup
-    cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-    sed -i "/^\[sshd\]$/,/^\[/ s/port\s*=\s*ssh/port    = $SSH_PORT/g" /etc/fail2ban/jail.local
-    systemctl enable fail2ban
-    systemctl restart fail2ban
 }
 
 # End of script actions
@@ -370,11 +389,14 @@ install() {
 }
 
 setup() {
+    setup_user
     setup_zsh
-    setup_wireguard
-    setup_newpeer
     setup_ufw
     setup_fail2ban
+    if [[ "$INSTALL_WG" == "y" ]]; then
+        setup_wireguard
+        setup_newpeer
+    fi
 }
 
 cleanup() {
