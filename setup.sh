@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # TODO: Add a one click option for full defaults
-# TODO: Output a recap before doing modifications and at the end of script
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
@@ -14,7 +13,6 @@
 # TODO: ADD option for timezone selection
 # TODO: Maybe centralize rms of downloads
 # TODO: Combine all the apt functions into install functions and use if statemetn to define wich packets to install zfs or not for example
-# TODO: Add option autoreboot at end of script
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -75,9 +73,11 @@ user_input() {
     # Add new user to sudoers if desired
     read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
     ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
-    echo "You have selected $ADD_TO_SUDOERS to sudoers for $USERNAME"
+    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+        echo "User $USERNAME will be added to sudoers."
+    fi
 
-    # Ask for password if user does not exist
+    # If user does not exist, ask for password
     if ! id "$USERNAME" &>/dev/null; then
         read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
         echo "Password will be set for $USERNAME"
@@ -85,23 +85,25 @@ user_input() {
 
     # Ask for SSH key if desired
     read -p "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): " SSH_KEY
+
+    # If SSH key is provided, ask if password authentication should be disabled
     if [[ -n "$SSH_KEY" ]]; then
         echo "SSH key: $SSH_KEY will be set for $USERNAME"
-    fi
-
-    # Ask user if they want to disable password authentication
-    if [[ -n "$SSH_KEY" ]]; then
         read -p "Do you want to disable password authentication for SSH? (y/n, press Enter to choose $DEFAULT_DISABLE_PASSWORD_AUTH): " DISABLE_PASSWORD_AUTH
         DISABLE_PASSWORD_AUTH=${DISABLE_PASSWORD_AUTH:-$DEFAULT_DISABLE_PASSWORD_AUTH}
-        echo "You have selected $DISABLE_PASSWORD_AUTH to disable password option for SSH"
+        if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
+            echo "SSH Password authentication will be disabled"
+        fi
     fi
 
     # Wireguard Installation
     read -p "Do you want to install Wireguard? (y/n, press Enter to choose $DEFAULT_INSTALL_WG): " INSTALL_WG
     INSTALL_WG=${INSTALL_WG:-$DEFAULT_INSTALL_WG}
-    echo "You have selected $INSTALL_WG for Wireguard installation"
-
+    
+    # If Wireguard is to be installed, ask for additional information
     if [[ "$INSTALL_WG" == "y" ]]; then
+        echo "Wireguard will be installed"
+
         # Choose the network interface used for internet connectivity
         read -p "Enter the WAN Interface you would like to use for Wireguard (press Enter to choose $DEFAULT_WAN_INTERFACE): " WAN_INTERFACE
         WAN_INTERFACE=${WAN_INTERFACE:-$DEFAULT_WAN_INTERFACE}
@@ -121,22 +123,30 @@ user_input() {
     # ZFS Installation
     read -p "Do you want to install ZFS? (y/n, press Enter to choose $DEFAULT_INSTALL_ZFS): " INSTALL_ZFS
     INSTALL_ZFS=${INSTALL_ZFS:-$DEFAULT_INSTALL_ZFS}
-    echo "You have selected $INSTALL_ZFS for ZFS installation"
+    if [[ "$INSTALL_ZFS" == "y" ]]; then
+        echo "ZFS will be installed"
+    fi
 
     # Virtualization Installation
     read -p "Do you want to install Virtualization packages? (y/n, press Enter to choose $DEFAULT_INSTALL_VIRT): " INSTALL_VIRT
     INSTALL_VIRT=${INSTALL_VIRT:-$DEFAULT_INSTALL_VIRT}
-    echo "You have selected $INSTALL_VIRT for Virtualization packages installation"
+    if [[ "$INSTALL_VIRT" == "y" ]]; then
+        echo "Virtualization packages will be installed"
+    fi
 
     # Docker Installation
     read -p "Do you want to install Docker Engine? (y/n, press Enter to choose $DEFAULT_INSTALL_DOCKER): " INSTALL_DOCKER
     INSTALL_DOCKER=${INSTALL_DOCKER:-$DEFAULT_INSTALL_DOCKER}
-    echo "You have selected $INSTALL_DOCKER for Docker Engine installation"
+    if [[ "$INSTALL_DOCKER" == "y" ]]; then
+        echo "Docker Engine will be installed"
+    fi
 
     # Autoreboot
     read -p "Do you want to autoreboot the system at the end of the script? (y/n, press Enter to choose $DEFAULT_AUTOREBOOT): " AUTOREBOOT
     AUTOREBOOT=${AUTOREBOOT:-$DEFAULT_AUTOREBOOT}
-    echo "You have selected $AUTOREBOOT for autoreboot at the end of the script"
+    if [[ "$AUTOREBOOT" == "y" ]]; then
+        echo "Server will autoreboot at the end of the script"
+    fi
 
     # Confirm user choices
     echo ""
@@ -145,13 +155,13 @@ user_input() {
     echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
     if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
-        echo "Adding $USERNAME to sudoers"
+        echo "User $USERNAME will be added to sudoers."
     fi
     if [[ -n "$SSH_KEY" ]]; then
-        echo "SSH Key: $SSH_KEY"
+        echo "SSH key: $SSH_KEY will be set for $USERNAME"
     fi
     if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
-        echo "Disabling password authentication for SSH"
+        echo "SSH Password authentication will be disabled"
     fi
     if [[ "$INSTALL_WG" == "y" ]]; then
         echo "Installing Wireguard"
@@ -160,16 +170,16 @@ user_input() {
         echo "Wireguard Port: $WIREGUARD_PORT"
     fi
     if [[ "$INSTALL_ZFS" == "y" ]]; then
-        echo "Installing ZFS"
+        echo "ZFS will be installed"
     fi
     if [[ "$INSTALL_VIRT" == "y" ]]; then
-        echo "Installing Virtualization packages"
+        echo "Virtualization packages will be installed"
     fi
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
-        echo "Installing Docker Engine"
+        echo "Docker Engine will be installed"
     fi
     if [[ "$AUTOREBOOT" == "y" ]]; then
-        echo "Autoreboot at the end of the script"
+        echo "Server will autoreboot at the end of the script"
     fi
     read -p "Do you want to proceed with these settings? (y/n): " PROCEED
     if [[ "$PROCEED" != "y" ]]; then
@@ -426,31 +436,31 @@ recap() {
     echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
     if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
-        echo "Adding $USERNAME to sudoers"
+        echo "$USERNAME was added to sudoers"
     fi
     if [[ -n "$SSH_KEY" ]]; then
         echo "SSH Key: $SSH_KEY"
     fi
     if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
-        echo "Disabling password authentication for SSH"
+        echo "SSH Password authentication was disabled"
     fi
     if [[ "$INSTALL_WG" == "y" ]]; then
-        echo "Installing Wireguard"
+        echo "Wireguard was installed"
         echo "WAN Interface: $WAN_INTERFACE"
         echo "WAN Endpoint: $ENDPOINT"
         echo "Wireguard Port: $WIREGUARD_PORT"
     fi
     if [[ "$INSTALL_ZFS" == "y" ]]; then
-        echo "Installing ZFS"
+        echo "ZFS was installed"
     fi
     if [[ "$INSTALL_VIRT" == "y" ]]; then
-        echo "Installing Virtualization packages"
+        echo "Virtualization packages were installed"
     fi
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
-        echo "Installing Docker Engine"
+        echo "Docker Engine was installed"
     fi
     if [[ "$AUTOREBOOT" == "y" ]]; then
-        echo "Autoreboot at the end of the script"
+        echo "Server will autoreboot"
     fi
 }
 
