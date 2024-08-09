@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # TODO: Add a one click option for full defaults
+# TODO: Add checks so script is run twice with no problem
+# TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
+# TODO: Add more granular error handling
+
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
-# TODO: Add checks so script is run twice with no problem
-# TODO: Make default usernam dynamic
-# TODO: Add more granular error handling
-# TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
+
+
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -53,7 +55,10 @@ user_input() {
     read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
     SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
 
-    if ! id -nG el | grep -w sudo; then
+    read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
+    USERNAME=${USERNAME:-$DEFAULT_USERNAME}
+
+    if ! id -nG $USERNAME | grep -w sudo; then
         read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
         ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
     fi
