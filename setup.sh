@@ -3,11 +3,16 @@
 # TODO: Add a one click option for full defaults
 # TODO: Add checks so script is run twice with no problem
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
+# TODO: Use mktemp for download scripts
+# TODO: Add a check for the script to be run on a Debian system
+# TODO: Centralize path variables
 # TODO: Add more granular error handling
+# TODO: Run script throught shellcheck
 
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
+
 
 
 
@@ -35,11 +40,12 @@ initial_verification() {
 
 # Prompt for user inputs
 user_input() {
+    DEFAULT_EL_SETTINGS=n
     DEFAULT_HOSTNAME=$(hostname)
-    DEFAULT_SSH_PORT=22
     DEFAULT_USERNAME=$(grep -E '^[^:]+' /etc/passwd | awk -F: '$3 == 1000 {print $1; exit}')
     DEFAULT_ADD_TO_SUDOERS=n
     DEFAULT_DISABLE_PASSWORD_AUTH=n
+    DEFAULT_SSH_PORT=22
     DEFAULT_INSTALL_WG=n
     DEFAULT_WIREGUARD_PORT=51820
     DEFAULT_WAN_INTERFACE=$(ip route get 1.1.1.1 | grep -oP 'dev \K\S+')
@@ -48,17 +54,65 @@ user_input() {
     DEFAULT_INSTALL_VIRT=n
     DEFAULT_INSTALL_DOCKER=n
     DEFAULT_AUTOREBOOT=n
+
+    DEFAULT_EL_SETTINGS=n
+    EL_HOSTNAME=$DEFAULT_HOSTNAME
+    EL_USERNAME=el
+    EL_ADD_TO_SUDOERS=y
+    EL_SSH_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDre2pX3CeqtBkd6kzoUPH4XVxIi+T4zAMj2w0XqvbzESV7qISYTPj/Xo+FF0tlg7nDxfsEruQW1RB5cp5/X/7yQA+MdO07Z17LGmAPKLYrXUAN1f+PiPQnmagkXE6Ec6V26E31o2iho8a+5Te+nIO/Q7S11j+pgR/R0rHkTKUpj1A/uW2UgaEwR6iCCBVCjn1tWMWJHesKKpau+bJ67QUDU+RWX7NJclsItNl/EHIw/XjxB10jaKMCOH2Y3pdvGGbOVXc7SO4pmbF4mdEuJYgRuCfLYEIeSumHO1mLUfh8QZpSCcYtSpJ0lwWcPWjLo5FO/TiYCw+5YFgtve7g+CSnRf/N5jD7GVt45AbJRHvb+nBfzPLQxbl2dhrZOoXdhBiiS4q6sKjp1UqeT5aYvwbVuHbVnYeDazsqpSULB++botxVuqfJWflAj0Ksf59UW7nNo36cJT5f2aQStuIGRUnRT6MxArXyDGAEKgk14VjwH8VF8gPrAIfEbOYcoj+d6Vk= el@lilbird-laptop-macos14.local"
+    EL_DISABLE_PASSWORD_AUTH=y
+    EL_SSH_PORT=4422
+    EL_INSTALL_WG=y
+    EL_WIREGUARD_PORT=54820
+    EL_WAN_INTERFACE=$DEFAULT_WAN_INTERFACE
+    EL_ENDPOINT=$DEFAULT_ENDPOINT
+    EL_INSTALL_ZFS=y
+    EL_INSTALL_VIRT=y
+    EL_INSTALL_DOCKER=y
+    EL_AUTOREBOOT=y
+
+    read -p "Do you want to proceed with user el settings? (y/n): " EL_SETTINGS
+    EL_SETTINGS=${EL_SETTINGS:-$DEFAULT_EL_SETTINGS}
+
+    if [[ "$EL_SETTINGS" == "y" ]]; then
+        HOSTNAME=$EL_HOSTNAME
+        USERNAME=$EL_USERNAME
+        ADD_TO_SUDOERS=$EL_ADD_TO_SUDOERS
+        SSH_KEY=$EL_SSH_KEY
+        DISABLE_PASSWORD_AUTH=$EL_DISABLE_PASSWORD_AUTH
+        SSH_PORT=$EL_SSH_PORT
+        INSTALL_WG=$EL_INSTALL_WG
+        WIREGUARD_PORT=$EL_WIREGUARD_PORT
+        WAN_INTERFACE=$EL_WAN_INTERFACE
+        ENDPOINT=$EL_ENDPOINT
+        INSTALL_ZFS=$EL_INSTALL_ZFS
+        INSTALL_VIRT=$EL_INSTALL_VIRT
+        INSTALL_DOCKER=$EL_INSTALL_DOCKER
+        AUTOREBOOT=$EL_AUTOREBOOT
+        return
+    fi
     
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
     HOSTNAME=${HOSTNAME:-$DEFAULT_HOSTNAME}
 
-    read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
-    SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
-
     read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
     USERNAME=${USERNAME:-$DEFAULT_USERNAME}
 
-    if ! id -nG $USERNAME | grep -w sudo; then
+    if ! id "$USERNAME" &>/dev/null; then
+        while true; do
+            read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
+            echo
+            read -sp "Repeat password: " USER_PASSWORD_REPEAT
+            echo
+            if [[ "$USER_PASSWORD" == "$USER_PASSWORD_REPEAT" ]]; then
+                break
+            else
+                echo "Passwords do not match. Please try again."
+            fi
+        done
+    fi
+
+    if ! id "$USERNAME" &>/dev/null || ! id -nG "$USERNAME" | grep -w sudo; then
         read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
         ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
     fi
@@ -69,6 +123,9 @@ user_input() {
         read -p "Do you want to disable password authentication for SSH? (y/n, press Enter to choose $DEFAULT_DISABLE_PASSWORD_AUTH): " DISABLE_PASSWORD_AUTH
         DISABLE_PASSWORD_AUTH=${DISABLE_PASSWORD_AUTH:-$DEFAULT_DISABLE_PASSWORD_AUTH}
     fi
+
+    read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
+    SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
 
     read -p "Do you want to install Wireguard? (y/n, press Enter to choose $DEFAULT_INSTALL_WG): " INSTALL_WG
     INSTALL_WG=${INSTALL_WG:-$DEFAULT_INSTALL_WG}
@@ -95,7 +152,9 @@ user_input() {
 
     read -p "Do you want to autoreboot the system at the end of the script? (y/n, press Enter to choose $DEFAULT_AUTOREBOOT): " AUTOREBOOT
     AUTOREBOOT=${AUTOREBOOT:-$DEFAULT_AUTOREBOOT}
+}
 
+recap_beg() {
     echo ""
     echo "You have selected the following options:"
     echo "Hostname: $HOSTNAME"
@@ -155,12 +214,23 @@ change_hostname() {
     hostnamectl set-hostname "$HOSTNAME"
 }
 
+# Setup user account
+setup_user() {
+    if ! id "$USERNAME" &>/dev/null; then
+        echo "Creating user $USERNAME..."
+        useradd -m "$USERNAME"
+        echo "$USERNAME:$USER_PASSWORD" | chpasswd
+        echo "User $USERNAME created with specified password."
+    fi
+    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
+        usermod -aG sudo "$USERNAME"
+        echo "User $USERNAME added to sudoers."
+    fi
+}
+
 # Secure SSH
 secure_ssh() {
     echo "Securing SSH..."
-    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-    sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
-    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
     if [[ -n "$SSH_KEY" ]]; then
         echo "Adding SSH key to $USERNAME's authorized keys..."
         mkdir -p "/home/$USERNAME/.ssh"
@@ -176,17 +246,10 @@ secure_ssh() {
         systemctl restart ssh
         echo "Password authentication disabled for SSH."
     fi
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+    sed -i "s/#Port 22/Port $SSH_PORT/g" /etc/ssh/sshd_config
+    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/g" /etc/ssh/sshd_config
     systemctl restart ssh
-}
-
-# Create the user if necessary and set the password
-create_user() {
-    if ! id "$USERNAME" &>/dev/null; then
-        echo "Creating user $USERNAME..."
-        useradd -m "$USERNAME"
-        echo "$USERNAME:$USER_PASSWORD" | chpasswd
-        echo "User $USERNAME created with specified password."
-    fi
 }
 
 # Changing login page formatting, removing default MOTDs
@@ -283,14 +346,6 @@ install_docker() {
     rm /downloads/get-docker.sh
 }
 
-# Setup User
-setup_user() {
-    if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
-        usermod -aG sudo "$USERNAME"
-        echo "User $USERNAME added to sudoers."
-    fi
-}
-
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
@@ -374,7 +429,7 @@ cleanup() {
 }
 
 # Recap of script actions
-recap() {
+recap_end() {
     echo ""
     echo "Recap of script actions:"
     echo "Hostname: $HOSTNAME"
@@ -429,14 +484,15 @@ reboot_system() {
 main() {
   initial_verification
   user_input
+  recap_beg
   
   time (
     {    
         initial_script_options
         full_upgrade
         change_hostname
+        setup_user
         secure_ssh
-        create_user
         change_login_page
         
         install_defaultrepo_tools
@@ -458,7 +514,6 @@ main() {
             install_lazydocker
         fi
         
-        setup_user
         setup_zsh
         setup_timezone
         setup_ufw
@@ -469,7 +524,7 @@ main() {
         fi
         
         cleanup
-        recap
+        recap_end
     }
   )
   
