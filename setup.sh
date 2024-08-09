@@ -8,6 +8,8 @@
 # TODO: Add more granular error handling
 # TODO: Run script throught shellcheck
 # TODO: backup original ssh config and other config changed if so
+# TODO: Add checks that forces to choose between yes and no
+# TODO: try to use [[ "$INSTALL_ZFS" == "y" ]] && echo "ZFS was installed" style if possible
 
 # TODO: Rethink order of ask for ssh port, maybe put it higher in the script
 # TODO: Make password check for el default prettier
