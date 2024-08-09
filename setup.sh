@@ -166,7 +166,7 @@ recap_beg() {
     fi
     echo "SSH Port: $SSH_PORT"
     if [[ "$INSTALL_WG" == "y" ]]; then
-        echo "Installing Wireguard"
+        echo "Wireguard will be installed"
         echo "WAN Interface: $WAN_INTERFACE"
         echo "WAN Endpoint: $ENDPOINT"
         echo "Wireguard Port: $WIREGUARD_PORT"
