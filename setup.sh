@@ -2,14 +2,9 @@
 
 # TODO: Add checks so script is run twice with no problem
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
-# TODO: Use mktemp for download scripts
 # TODO: Add a check for the script to be run on a Debian system
-# TODO: Centralize path variables
 # TODO: Add more granular error handling
 # TODO: Run script throught shellcheck
-# TODO: backup original ssh config and other config changed if so
-# TODO: Add checks that forces to choose between yes and no
-# TODO: Move script to github
 # TODO: Better configure recap end to show everything that is changed not just chosen option by user
 
 # TODO: Rethink order of ask for ssh port, maybe put it higher in the script
@@ -230,6 +225,7 @@ setup_user() {
 # Secure SSH
 secure_ssh() {
     echo "Securing SSH..."
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
     if [[ -n "$SSH_KEY" ]]; then
         echo "Adding SSH key to $USERNAME's authorized keys..."
         mkdir -p "/home/$USERNAME/.ssh"
@@ -271,36 +267,36 @@ install_defaultrepo_tools() {
 # Centralize necessary downloads based on user input
 centralize_downloads() {
     echo "Centralizing necessary downloads based on choices..."
-    mkdir -p /downloads
+    DOWNLOAD_PATH=$(mktemp -d)
 
     LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | jq -r '.tag_name' | sed 's/^v//')
-    curl -Lo /downloads/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-    curl -fsSL $DUPLICACY_RELEASE -o /downloads/duplicacy
-    curl -o /downloads/.zshrc $ZSHRC_FILE
-    curl -o /downloads/wg0.conf $WG0_CONF
-    curl -o /downloads/newpeer.sh $NEWPEER_SH
+    curl -Lo $DOWNLOAD_PATH/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    curl -fsSL $DUPLICACY_RELEASE -o $DOWNLOAD_PATH/duplicacy
+    curl -o $DOWNLOAD_PATH/.zshrc $ZSHRC_FILE
+    curl -o $DOWNLOAD_PATH/wg0.conf $WG0_CONF
+    curl -o $DOWNLOAD_PATH/newpeer.sh $NEWPEER_SH
 
     if [[ "$INSTALL_DOCKER" == "y" ]]; then
         echo "Preparing to download Docker installation script and Lazydocker..."
-        curl -fsSL $DOCKER_INSTALL_SCRIPT -o /downloads/get-docker.sh
-        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o /downloads/lazydocker_install.sh
+        curl -fsSL $DOCKER_INSTALL_SCRIPT -o $DOWNLOAD_PATH/get-docker.sh
+        curl -sSL $LAZYDOCKER_INSTALL_SCRIPT -o $DOWNLOAD_PATH/lazydocker_install.sh
     fi
 }
 
 # Install Lazygit
 install_lazygit() {
-    tar xf /downloads/lazygit.tar.gz -C /downloads/ lazygit
-    install /downloads/lazygit /usr/local/bin
-    rm /downloads/lazygit.tar.gz
-    rm /downloads/lazygit
+    tar xf $DOWNLOAD_PATH/lazygit.tar.gz -C $DOWNLOAD_PATH/ lazygit
+    install $DOWNLOAD_PATH/lazygit /usr/local/bin
+    rm $DOWNLOAD_PATH/lazygit.tar.gz
+    rm $DOWNLOAD_PATH/lazygit
 }
 
 # Install Duplicacy
 install_duplicacy() {
     echo "Installing Duplicacy..."
-    cp /downloads/duplicacy /usr/local/bin/
+    cp $DOWNLOAD_PATH/duplicacy /usr/local/bin/
     chmod +x /usr/local/bin/duplicacy
-    rm /downloads/duplicacy
+    rm $DOWNLOAD_PATH/duplicacy
 }
 
 # Install system services (system background processes)
@@ -333,29 +329,29 @@ install_virt() {
 # Install Lazydocker
 install_lazydocker() {
     echo "Installing Lazydocker..."
-    bash /downloads/lazydocker_install.sh
+    bash $DOWNLOAD_PATH/lazydocker_install.sh
     apt install lazydocker
-    rm /downloads/lazydocker_install.sh
+    rm $DOWNLOAD_PATH/lazydocker_install.sh
 }
 
 # Install Docker Engine
 install_docker() {
     echo "Installing Docker Engine..."
-    sh /downloads/get-docker.sh
-    rm /downloads/get-docker.sh
+    sh $DOWNLOAD_PATH/get-docker.sh
+    rm $DOWNLOAD_PATH/get-docker.sh
 }
 
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
-    cp /downloads/.zshrc /etc/skel/
+    cp $DOWNLOAD_PATH/.zshrc /etc/skel/
     chmod 644 /etc/skel/.zshrc
     cp /etc/skel/.zshrc /root/
     chsh -s /bin/zsh root
     cp /etc/skel/.zshrc /home/$USERNAME/
     chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
     chsh -s /bin/zsh $USERNAME
-    rm /downloads/.zshrc
+    rm $DOWNLOAD_PATH/.zshrc
 }
 
 # Auto change timezone to closest server
@@ -392,7 +388,7 @@ setup_fail2ban() {
 # Wireguard Setup
 setup_wireguard() {
     echo "Setting up Wireguard..."
-    cp /downloads/wg0.conf /etc/wireguard/
+    cp $DOWNLOAD_PATH/wg0.conf /etc/wireguard/
     umask 077
     wg genkey > /etc/wireguard/privatekey
     wg pubkey < /etc/wireguard/privatekey > /etc/wireguard/publickey
@@ -404,16 +400,16 @@ setup_wireguard() {
     wg-quick up wg0
     systemctl enable wg-quick@wg0.service
     umask 022
-    rm /downloads/wg0.conf
+    rm $DOWNLOAD_PATH/wg0.conf
 }
 
 # Get newpeer.sh script
 setup_newpeer() {
     echo "Downloading and setting up the newpeer.sh script for Wireguard..."
-    cp /downloads/newpeer.sh /etc/wireguard/
+    cp $DOWNLOAD_PATH/newpeer.sh /etc/wireguard/
     sed -i "s/ENDPOINT/$ENDPOINT/g" /etc/wireguard/newpeer.sh
     sed -i "s/WIREGUARD_PORT/$WIREGUARD_PORT/g" /etc/wireguard/newpeer.sh
-    rm /downloads/newpeer.sh
+    rm $DOWNLOAD_PATH/newpeer.sh
 }
 
 # End of script actions
@@ -422,7 +418,7 @@ cleanup() {
     apt update
     apt full-upgrade -y
     apt autoremove -y
-    rm -rf /downloads
+    rm -rf $DOWNLOAD_PATH
     rm setup.sh
     unset DEBIAN_FRONTEND
 }
