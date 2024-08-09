@@ -7,6 +7,7 @@
 # TODO: Centralize path variables
 # TODO: Add more granular error handling
 # TODO: Run script throught shellcheck
+# TODO: backup original ssh config and other config changed if so
 
 # TODO: Rethink order of ask for ssh port, maybe put it higher in the script
 # TODO: Make password check for el default prettier
