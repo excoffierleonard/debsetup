@@ -4,9 +4,7 @@
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
-# TODO: Explicitly say that root password will be disabled and ssh key will be used
 # TODO: Add checks so script is run twice with no problem
-# TODO: Maybe do not force zsh config for all users
 # TODO: Make default usernam dynamic
 # TODO: Add more granular error handling
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
@@ -37,7 +35,6 @@ initial_verification() {
 user_input() {
     DEFAULT_HOSTNAME=$(hostname)
     DEFAULT_SSH_PORT=22
-    DEFAULT_USERNAME=el
     DEFAULT_ADD_TO_SUDOERS=y
     DEFAULT_DISABLE_PASSWORD_AUTH=n
     DEFAULT_INSTALL_WG=y
@@ -55,20 +52,27 @@ user_input() {
     read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
     SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
 
-    read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
-    USERNAME=${USERNAME:-$DEFAULT_USERNAME}
+    read -p "Enter the username of the user you wish to create or use: " USERNAME
+    USERNAME=${USERNAME,,}
+    if [[ ! "$USERNAME" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+        echo "Invalid username. Use lowercase letters, numbers, underscores, and hyphens only. Must start with a letter or underscore."
+        return 1
+    fi
+    if id -u "$USERNAME" &>/dev/null && [[ $(id -u "$USERNAME") -lt 1000 ]]; then
+        echo "The username '$USERNAME' is reserved for system use. Please choose a different username."
+        return 1
+    fi
+
+    if ! id "$USERNAME" &>/dev/null; then
+        read -sp "$USERNAME Does not exist, please enter password for user $USERNAME creation (input hidden): " USER_PASSWORD
+    fi
 
     read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
     ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
 
-    if ! id "$USERNAME" &>/dev/null; then
-        read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
-    fi
-
     read -p "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): " SSH_KEY
 
     if [[ -n "$SSH_KEY" ]]; then
-        echo "SSH key: $SSH_KEY will be set for $USERNAME"
         read -p "Do you want to disable password authentication for SSH? (y/n, press Enter to choose $DEFAULT_DISABLE_PASSWORD_AUTH): " DISABLE_PASSWORD_AUTH
         DISABLE_PASSWORD_AUTH=${DISABLE_PASSWORD_AUTH:-$DEFAULT_DISABLE_PASSWORD_AUTH}
     fi
@@ -89,7 +93,6 @@ user_input() {
 
     read -p "Do you want to install ZFS? (y/n, press Enter to choose $DEFAULT_INSTALL_ZFS): " INSTALL_ZFS
     INSTALL_ZFS=${INSTALL_ZFS:-$DEFAULT_INSTALL_ZFS}
-
 
     read -p "Do you want to install Virtualization packages? (y/n, press Enter to choose $DEFAULT_INSTALL_VIRT): " INSTALL_VIRT
     INSTALL_VIRT=${INSTALL_VIRT:-$DEFAULT_INSTALL_VIRT}
