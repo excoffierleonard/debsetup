@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO: Add a one click option for full defaults
 # TODO: Add checks so script is run twice with no problem
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: Use mktemp for download scripts
@@ -9,12 +8,10 @@
 # TODO: Add more granular error handling
 # TODO: Run script throught shellcheck
 
+# TODO: Make password check for el default prettier
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
-
-
-
 
 # External links centralized
 DOCKER_INSTALL_SCRIPT="https://get.docker.com"
@@ -55,40 +52,37 @@ user_input() {
     DEFAULT_INSTALL_DOCKER=n
     DEFAULT_AUTOREBOOT=n
 
-    DEFAULT_EL_SETTINGS=n
-    EL_HOSTNAME=$DEFAULT_HOSTNAME
-    EL_USERNAME=el
-    EL_ADD_TO_SUDOERS=y
-    EL_SSH_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDre2pX3CeqtBkd6kzoUPH4XVxIi+T4zAMj2w0XqvbzESV7qISYTPj/Xo+FF0tlg7nDxfsEruQW1RB5cp5/X/7yQA+MdO07Z17LGmAPKLYrXUAN1f+PiPQnmagkXE6Ec6V26E31o2iho8a+5Te+nIO/Q7S11j+pgR/R0rHkTKUpj1A/uW2UgaEwR6iCCBVCjn1tWMWJHesKKpau+bJ67QUDU+RWX7NJclsItNl/EHIw/XjxB10jaKMCOH2Y3pdvGGbOVXc7SO4pmbF4mdEuJYgRuCfLYEIeSumHO1mLUfh8QZpSCcYtSpJ0lwWcPWjLo5FO/TiYCw+5YFgtve7g+CSnRf/N5jD7GVt45AbJRHvb+nBfzPLQxbl2dhrZOoXdhBiiS4q6sKjp1UqeT5aYvwbVuHbVnYeDazsqpSULB++botxVuqfJWflAj0Ksf59UW7nNo36cJT5f2aQStuIGRUnRT6MxArXyDGAEKgk14VjwH8VF8gPrAIfEbOYcoj+d6Vk= el@lilbird-laptop-macos14.local"
-    EL_DISABLE_PASSWORD_AUTH=y
-    EL_SSH_PORT=4422
-    EL_INSTALL_WG=y
-    EL_WIREGUARD_PORT=54820
-    EL_WAN_INTERFACE=$DEFAULT_WAN_INTERFACE
-    EL_ENDPOINT=$DEFAULT_ENDPOINT
-    EL_INSTALL_ZFS=y
-    EL_INSTALL_VIRT=y
-    EL_INSTALL_DOCKER=y
-    EL_AUTOREBOOT=y
-
     read -p "Do you want to proceed with user el settings? (y/n): " EL_SETTINGS
     EL_SETTINGS=${EL_SETTINGS:-$DEFAULT_EL_SETTINGS}
 
     if [[ "$EL_SETTINGS" == "y" ]]; then
-        HOSTNAME=$EL_HOSTNAME
-        USERNAME=$EL_USERNAME
-        ADD_TO_SUDOERS=$EL_ADD_TO_SUDOERS
-        SSH_KEY=$EL_SSH_KEY
-        DISABLE_PASSWORD_AUTH=$EL_DISABLE_PASSWORD_AUTH
-        SSH_PORT=$EL_SSH_PORT
-        INSTALL_WG=$EL_INSTALL_WG
-        WIREGUARD_PORT=$EL_WIREGUARD_PORT
-        WAN_INTERFACE=$EL_WAN_INTERFACE
-        ENDPOINT=$EL_ENDPOINT
-        INSTALL_ZFS=$EL_INSTALL_ZFS
-        INSTALL_VIRT=$EL_INSTALL_VIRT
-        INSTALL_DOCKER=$EL_INSTALL_DOCKER
-        AUTOREBOOT=$EL_AUTOREBOOT
+        HOSTNAME=$DEFAULT_HOSTNAME
+        USERNAME=el
+        if ! id "$USERNAME" &>/dev/null; then
+            while true; do
+                read -sp "Enter password for user $USERNAME (input hidden): " USER_PASSWORD
+                echo
+                read -sp "Repeat password: " USER_PASSWORD_REPEAT
+                echo
+                if [[ "$USER_PASSWORD" == "$USER_PASSWORD_REPEAT" ]]; then
+                    break
+                else
+                    echo "Passwords do not match. Please try again."
+                fi
+            done
+        fi
+        ADD_TO_SUDOERS=y
+        SSH_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDre2pX3CeqtBkd6kzoUPH4XVxIi+T4zAMj2w0XqvbzESV7qISYTPj/Xo+FF0tlg7nDxfsEruQW1RB5cp5/X/7yQA+MdO07Z17LGmAPKLYrXUAN1f+PiPQnmagkXE6Ec6V26E31o2iho8a+5Te+nIO/Q7S11j+pgR/R0rHkTKUpj1A/uW2UgaEwR6iCCBVCjn1tWMWJHesKKpau+bJ67QUDU+RWX7NJclsItNl/EHIw/XjxB10jaKMCOH2Y3pdvGGbOVXc7SO4pmbF4mdEuJYgRuCfLYEIeSumHO1mLUfh8QZpSCcYtSpJ0lwWcPWjLo5FO/TiYCw+5YFgtve7g+CSnRf/N5jD7GVt45AbJRHvb+nBfzPLQxbl2dhrZOoXdhBiiS4q6sKjp1UqeT5aYvwbVuHbVnYeDazsqpSULB++botxVuqfJWflAj0Ksf59UW7nNo36cJT5f2aQStuIGRUnRT6MxArXyDGAEKgk14VjwH8VF8gPrAIfEbOYcoj+d6Vk= el@lilbird-laptop-macos14.local"
+        DISABLE_PASSWORD_AUTH=y
+        SSH_PORT=4422
+        INSTALL_WG=y
+        WIREGUARD_PORT=54820
+        WAN_INTERFACE=$DEFAULT_WAN_INTERFACE
+        ENDPOINT=$DEFAULT_ENDPOINT
+        INSTALL_ZFS=y
+        INSTALL_VIRT=y
+        INSTALL_DOCKER=y
+        AUTOREBOOT=y
         return
     fi
     
