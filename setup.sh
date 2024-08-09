@@ -23,9 +23,9 @@ DOCKER_INSTALL_SCRIPT="https://get.docker.com"
 DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
 LAZYDOCKER_INSTALL_SCRIPT="https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository"
 LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
-ZSHRC_FILE="https://git.jisoonet.com/el/debsetup/-/raw/main/.zshrc"
-WG0_CONF="https://git.jisoonet.com/el/debsetup/-/raw/main/wg0.conf"
-NEWPEER_SH="https://git.jisoonet.com/el/debsetup/-/raw/main/newpeer.sh"
+ZSHRC_FILE="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/.zshrc"
+WG0_CONF="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/wg0.conf"
+NEWPEER_SH="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/newpeer.sh"
 
 # Initial requirement verifications
 initial_verification() {
