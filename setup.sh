@@ -8,6 +8,7 @@
 # TODO: Add more granular error handling
 # TODO: Run script throught shellcheck
 
+# TODO: Rethink order of ask for ssh port, maybe put it higher in the script
 # TODO: Make password check for el default prettier
 # TODO: Create a dotfile repo for debian server
 # TODO: Maybe add option to pull usefull docker image, vms, isos, files, etc...
@@ -152,7 +153,6 @@ recap_beg() {
     echo ""
     echo "You have selected the following options:"
     echo "Hostname: $HOSTNAME"
-    echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
     if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
         echo "User $USERNAME will be added to sudoers."
@@ -163,6 +163,7 @@ recap_beg() {
     if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
         echo "SSH Password authentication will be disabled"
     fi
+    echo "SSH Port: $SSH_PORT"
     if [[ "$INSTALL_WG" == "y" ]]; then
         echo "Installing Wireguard"
         echo "WAN Interface: $WAN_INTERFACE"
@@ -427,7 +428,6 @@ recap_end() {
     echo ""
     echo "Recap of script actions:"
     echo "Hostname: $HOSTNAME"
-    echo "SSH Port: $SSH_PORT"
     echo "Username: $USERNAME"
     if [[ "$ADD_TO_SUDOERS" == "y" ]]; then
         echo "$USERNAME was added to sudoers"
@@ -438,6 +438,7 @@ recap_end() {
     if [[ "$DISABLE_PASSWORD_AUTH" == "y" ]]; then
         echo "SSH Password authentication was disabled"
     fi
+    echo "SSH Port: $SSH_PORT"
     if [[ "$INSTALL_WG" == "y" ]]; then
         echo "Wireguard was installed"
         echo "WAN Interface: $WAN_INTERFACE"
