@@ -53,11 +53,10 @@ user_input() {
     read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
     SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
 
-    read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
-    USERNAME=${USERNAME:-$DEFAULT_USERNAME}
-
-    read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
-    ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
+    if ! id -nG el | grep -w sudo; then
+        read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
+        ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
+    fi
 
     read -p "Enter an SSH Authorized Key for $USERNAME (press Enter to skip): " SSH_KEY
 
@@ -92,8 +91,6 @@ user_input() {
     read -p "Do you want to autoreboot the system at the end of the script? (y/n, press Enter to choose $DEFAULT_AUTOREBOOT): " AUTOREBOOT
     AUTOREBOOT=${AUTOREBOOT:-$DEFAULT_AUTOREBOOT}
 
-
-    # Confirm user choices
     echo ""
     echo "You have selected the following options:"
     echo "Hostname: $HOSTNAME"
