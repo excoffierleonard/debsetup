@@ -10,6 +10,7 @@
 # TODO: backup original ssh config and other config changed if so
 # TODO: Add checks that forces to choose between yes and no
 # TODO: Move script to github
+# TODO: Better configure recap end to show everything that is changed not just chosen option by user
 
 # TODO: Rethink order of ask for ssh port, maybe put it higher in the script
 # TODO: Make password check for el default prettier
