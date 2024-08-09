@@ -35,15 +35,16 @@ initial_verification() {
 user_input() {
     DEFAULT_HOSTNAME=$(hostname)
     DEFAULT_SSH_PORT=22
-    DEFAULT_ADD_TO_SUDOERS=y
+    DEFAULT_USERNAME=$(grep -E '^[^:]+' /etc/passwd | awk -F: '$3 == 1000 {print $1; exit}')
+    DEFAULT_ADD_TO_SUDOERS=n
     DEFAULT_DISABLE_PASSWORD_AUTH=n
-    DEFAULT_INSTALL_WG=y
+    DEFAULT_INSTALL_WG=n
     DEFAULT_WIREGUARD_PORT=51820
     DEFAULT_WAN_INTERFACE=$(ip route get 1.1.1.1 | grep -oP 'dev \K\S+')
     DEFAULT_ENDPOINT=$(wget -qO- http://ipinfo.io/ip)
-    DEFAULT_INSTALL_ZFS=y
-    DEFAULT_INSTALL_VIRT=y
-    DEFAULT_INSTALL_DOCKER=y
+    DEFAULT_INSTALL_ZFS=n
+    DEFAULT_INSTALL_VIRT=n
+    DEFAULT_INSTALL_DOCKER=n
     DEFAULT_AUTOREBOOT=n
     
     read -p "Enter system Hostname you wish to use (press Enter to choose $DEFAULT_HOSTNAME): " HOSTNAME
@@ -52,20 +53,8 @@ user_input() {
     read -p "Enter the SSH port you wish to use (press Enter to choose $DEFAULT_SSH_PORT): " SSH_PORT
     SSH_PORT=${SSH_PORT:-$DEFAULT_SSH_PORT}
 
-    read -p "Enter the username of the user you wish to create or use: " USERNAME
-    USERNAME=${USERNAME,,}
-    if [[ ! "$USERNAME" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
-        echo "Invalid username. Use lowercase letters, numbers, underscores, and hyphens only. Must start with a letter or underscore."
-        return 1
-    fi
-    if id -u "$USERNAME" &>/dev/null && [[ $(id -u "$USERNAME") -lt 1000 ]]; then
-        echo "The username '$USERNAME' is reserved for system use. Please choose a different username."
-        return 1
-    fi
-
-    if ! id "$USERNAME" &>/dev/null; then
-        read -sp "$USERNAME Does not exist, please enter password for user $USERNAME creation (input hidden): " USER_PASSWORD
-    fi
+    read -p "Enter the username of the user you wish to create or use (press Enter to choose $DEFAULT_USERNAME): " USERNAME
+    USERNAME=${USERNAME:-$DEFAULT_USERNAME}
 
     read -p "Do you want to add $USERNAME to sudoers? (y/n, press Enter to choose $DEFAULT_ADD_TO_SUDOERS): " ADD_TO_SUDOERS
     ADD_TO_SUDOERS=${ADD_TO_SUDOERS:-$DEFAULT_ADD_TO_SUDOERS}
