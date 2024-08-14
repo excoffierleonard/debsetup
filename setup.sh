@@ -14,13 +14,14 @@
 # TODO: Maybe add a default for SSH keys consider public or pricvate rpo of public keys.
 
 # External links centralized
-DOCKER_INSTALL_SCRIPT="https://get.docker.com"
-DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
-LAZYDOCKER_INSTALL_SCRIPT="https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository"
 LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
+DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
+B2_RELEASE="https://github.com/Backblaze/B2_Command_Line_Tool/releases/latest/download/b2-linux"
 ZSHRC_FILE="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/.zshrc"
 WG0_CONF="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/wg0.conf"
 NEWPEER_SH="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/newpeer.sh"
+DOCKER_INSTALL_SCRIPT="https://get.docker.com"
+LAZYDOCKER_INSTALL_SCRIPT="https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository"
 
 # Initial requirement verifications
 initial_verification() {
@@ -272,6 +273,7 @@ centralize_downloads() {
     LAZYGIT_VERSION=$(curl -s $LAZYGIT_API | jq -r '.tag_name' | sed 's/^v//')
     curl -Lo $DOWNLOAD_PATH/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
     curl -fsSL $DUPLICACY_RELEASE -o $DOWNLOAD_PATH/duplicacy
+    curl -fsSL $B2_RELEASE -o $DOWNLOAD_PATH/b2
     curl -o $DOWNLOAD_PATH/.zshrc $ZSHRC_FILE
     curl -o $DOWNLOAD_PATH/wg0.conf $WG0_CONF
     curl -o $DOWNLOAD_PATH/newpeer.sh $NEWPEER_SH
@@ -297,6 +299,14 @@ install_duplicacy() {
     cp $DOWNLOAD_PATH/duplicacy /usr/local/bin/
     chmod +x /usr/local/bin/duplicacy
     rm $DOWNLOAD_PATH/duplicacy
+}
+
+# Install B2 utils
+install_b2() {
+    echo "Installing B2 utils..."
+    cp $DOWNLOAD_PATH/b2 /usr/local/bin/
+    chmod +x /usr/local/bin/b2
+    rm $DOWNLOAD_PATH/b2
 }
 
 # Install system services (system background processes)
@@ -494,6 +504,7 @@ main() {
         centralize_downloads
         install_lazygit
         install_duplicacy
+        install_b2
         install_system_services
         if [[ "$INSTALL_WG" == "y" ]]; then
             install_wireguard
