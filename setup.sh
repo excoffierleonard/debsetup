@@ -262,7 +262,7 @@ change_login_page() {
 # Install default repository tools (session based)
 install_defaultrepo_tools() {
     echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree ufw neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck
 }
 
 # Centralize necessary downloads based on user input
@@ -312,7 +312,7 @@ install_b2() {
 # Install system services (system background processes)
 install_system_services() {
     echo "Installing system services..."
-    apt install -y ufw fail2ban
+    apt install -y fail2ban
 }
 
 # Install Wireguard
