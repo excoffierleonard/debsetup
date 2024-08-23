@@ -3,7 +3,7 @@
 ## Initial Installation
 
 ```sh
-wget -O setup.sh setup.jisoonet.com && bash setup.sh
+wget -O setup.sh https://raw.githubusercontent.com/excoffierleonard/debsetup/main/setup.sh && bash setup.sh
 ```
 
 ## Wireguard New Peer
