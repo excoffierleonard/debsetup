@@ -312,7 +312,7 @@ install_b2() {
 # Install system services (system background processes)
 install_system_services() {
     echo "Installing system services..."
-    apt install -y fail2ban
+    apt install -y cron fail2ban
 }
 
 # Install Wireguard
