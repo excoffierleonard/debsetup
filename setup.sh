@@ -17,6 +17,7 @@
 LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
 DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
 B2_RELEASE="https://github.com/Backblaze/B2_Command_Line_Tool/releases/latest/download/b2-linux"
+NVIM_REPO="https://github.com/neovim/neovim.git"
 ZSHRC_FILE="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/.zshrc"
 WG0_CONF="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/wg0.conf"
 NEWPEER_SH="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/newpeer.sh"
@@ -262,7 +263,7 @@ change_login_page() {
 # Install default repository tools (session based)
 install_defaultrepo_tools() {
     echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree ufw neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree ufw neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config doxygen
 }
 
 # Centralize necessary downloads based on user input
@@ -274,6 +275,7 @@ centralize_downloads() {
     curl -Lo $DOWNLOAD_PATH/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
     curl -fsSL $DUPLICACY_RELEASE -o $DOWNLOAD_PATH/duplicacy
     curl -fsSL $B2_RELEASE -o $DOWNLOAD_PATH/b2
+    git clone $NVIM_REPO $DOWNLOAD_PATH/neovim
     curl -o $DOWNLOAD_PATH/.zshrc $ZSHRC_FILE
     curl -o $DOWNLOAD_PATH/wg0.conf $WG0_CONF
     curl -o $DOWNLOAD_PATH/newpeer.sh $NEWPEER_SH
@@ -307,6 +309,15 @@ install_b2() {
     cp $DOWNLOAD_PATH/b2 /usr/local/bin/
     chmod +x /usr/local/bin/b2
     rm $DOWNLOAD_PATH/b2
+}
+
+# Install Neovim
+install_nvim() {
+    echo "Installing Neovim..."
+    git -C "$DOWNLOAD_PATH/neovim" checkout stable
+    make -C "$DOWNLOAD_PATH/neovim" CMAKE_BUILD_TYPE=Release
+    make -C "$DOWNLOAD_PATH/neovim" install
+    rm -rf "$DOWNLOAD_PATH/neovim"
 }
 
 # Install system services (system background processes)
@@ -505,6 +516,7 @@ main() {
         install_lazygit
         install_duplicacy
         install_b2
+        install_nvim
         install_system_services
         if [[ "$INSTALL_WG" == "y" ]]; then
             install_wireguard
