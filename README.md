@@ -15,6 +15,7 @@ This Bash script is designed to automate the setup of a new Debian-based server 
 ## Features
 - Initial verification for root access and internet connectivity.
 - User prompts to gather configuration details for setup.
+- Organizes installations into foreground tools and background processes.
 - Installs necessary packages and software (Docker, ZFS, Wireguard, etc.).
 - User account setup with optional sudoers access.
 - Configures secure SSH access with options to disable password authentication.
