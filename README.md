@@ -24,7 +24,7 @@ This Bash script is designed to automate the setup of a new Debian-based server 
 - Provides a recap of changes made before and after script execution.
 
 ## Requirements
-- A Debian-based OS (Debian 10, 11, or any compatible derivatives).
+- A Debian-based OS (Debian 11, 12, or any compatible derivatives).
 - Internet connection to download packages and updates.
 - Script must be run with root privileges.
 
