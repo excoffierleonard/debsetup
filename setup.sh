@@ -347,19 +347,19 @@ install_virt() {
     apt install -y qemu-system libvirt-clients libvirt-daemon-system virtinst
 }
 
+# Install Docker Engine
+install_docker() {
+    echo "Installing Docker Engine..."
+    sh $DOWNLOAD_PATH/get-docker.sh
+    rm $DOWNLOAD_PATH/get-docker.sh
+}
+
 # Install Lazydocker
 install_lazydocker() {
     echo "Installing Lazydocker..."
     bash $DOWNLOAD_PATH/lazydocker_install.sh
     apt install lazydocker
     rm $DOWNLOAD_PATH/lazydocker_install.sh
-}
-
-# Install Docker Engine
-install_docker() {
-    echo "Installing Docker Engine..."
-    sh $DOWNLOAD_PATH/get-docker.sh
-    rm $DOWNLOAD_PATH/get-docker.sh
 }
 
 # Setup Zsh
