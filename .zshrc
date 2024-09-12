@@ -1,8 +1,3 @@
-# Check if the session is inside tmux
-if [ -z "$TMUX" ]; then
-  neofetch
-fi
-
 # Set up coloring
 autoload -U colors && colors
 
@@ -20,8 +15,6 @@ alias :q="exit"
 alias lg="lazygit"
 alias python="python3"
 alias pip="pip3"
-alias system_update="~/.scripts/system_update.sh"
-alias todo="~/.scripts/todo.sh"
 
 # Set up the editor
 export EDITOR=nvim
