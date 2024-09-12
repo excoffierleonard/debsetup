@@ -263,7 +263,7 @@ change_login_page() {
 # Install default repository tools (session based)
 install_defaultrepo_tools() {
     echo "Installing tools..."
-    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree ufw neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config doxygen
+    apt install -y sudo neovim git curl wget mc ffmpeg tmux btop ncdu iftop rclone rsync tree ufw neofetch cpufetch cmatrix fzf exa tldr ripgrep qrencode certbot npm zip unzip htop zsh zsh-syntax-highlighting zsh-autosuggestions jq shellcheck ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config doxygen zoxide
 }
 
 # Centralize necessary downloads based on user input
