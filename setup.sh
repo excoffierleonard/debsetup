@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# TODO: Add check or backup for already existing .zshrc file for the user
 # TODO: Add checks so script is run twice with no problem
 # TODO: Add trap commands to ensure any temporary files (like downloaded scripts) are deleted even if the script exits prematurely.
 # TODO: Add a check for the script to be run on a Debian system
@@ -365,11 +366,8 @@ install_lazydocker() {
 # Setup Zsh
 setup_zsh() {
     echo "Setting up zsh..."
-    cp $DOWNLOAD_PATH/.zshrc /etc/skel/
-    chmod 644 /etc/skel/.zshrc
-    cp /etc/skel/.zshrc /root/
-    chsh -s /bin/zsh root
-    cp /etc/skel/.zshrc /home/$USERNAME/
+    cp $DOWNLOAD_PATH/.zshrc /home/$USERNAME/
+    chmod 644 /home/$USERNAME/.zshrc
     chown $USERNAME:$USERNAME /home/$USERNAME/.zshrc
     chsh -s /bin/zsh $USERNAME
     rm $DOWNLOAD_PATH/.zshrc
