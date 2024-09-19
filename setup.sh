@@ -18,6 +18,7 @@
 LAZYGIT_API="https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
 DUPLICACY_RELEASE="https://github.com/gilbertchen/duplicacy/releases/download/v3.2.3/duplicacy_linux_x64_3.2.3"
 B2_RELEASE="https://github.com/Backblaze/B2_Command_Line_Tool/releases/latest/download/b2-linux"
+RUST_INSTALL_SCRIPT="https://sh.rustup.rs"
 NVIM_REPO="https://github.com/neovim/neovim.git"
 ZSHRC_FILE="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/.zshrc"
 WG0_CONF="https://raw.githubusercontent.com/excoffierleonard/debsetup/main/wg0.conf"
@@ -276,6 +277,7 @@ centralize_downloads() {
     curl -Lo $DOWNLOAD_PATH/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
     curl -fsSL $DUPLICACY_RELEASE -o $DOWNLOAD_PATH/duplicacy
     curl -fsSL $B2_RELEASE -o $DOWNLOAD_PATH/b2
+    curl --proto '=https' --tlsv1.2 -sSf $RUST_INSTALL_SCRIPT -o $DOWNLOAD_PATH/rustup.sh
     git clone $NVIM_REPO $DOWNLOAD_PATH/neovim
     curl -o $DOWNLOAD_PATH/.zshrc $ZSHRC_FILE
     curl -o $DOWNLOAD_PATH/wg0.conf $WG0_CONF
@@ -310,6 +312,13 @@ install_b2() {
     cp $DOWNLOAD_PATH/b2 /usr/local/bin/
     chmod +x /usr/local/bin/b2
     rm $DOWNLOAD_PATH/b2
+}
+
+# Install Rust
+install_rust() {
+    echo "Installing Rust"
+    sh $DOWNLOAD_PATH/rustup.sh -y
+    rm $DOWNLOAD_PATH/rustup.sh
 }
 
 # Install Neovim
@@ -514,6 +523,7 @@ main() {
         install_lazygit
         install_duplicacy
         install_b2
+        install_rust
         install_nvim
         install_system_services
         if [[ "$INSTALL_WG" == "y" ]]; then
