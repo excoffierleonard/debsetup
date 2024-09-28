@@ -15,6 +15,8 @@ alias :q="exit"
 alias lg="lazygit"
 alias python="python3"
 alias pip="pip3"
+alias gacp='f() { git add . && git commit -m "$1" && git push; }; f'
+alias gac='f() { git add . && git commit -m "$1"; }; f'
 
 # Set up the editor
 export EDITOR=nvim
