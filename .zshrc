@@ -4,6 +4,9 @@ autoload -U colors && colors
 # Customize the command prompt
 PROMPT="%{$fg_bold[green]%}%n%{$reset_color%}@%{$fg_bold[green]%}%M %{$fg_bold[blue]%}%~ %{$reset_color%}%# "
 
+# Start SSH Agent
+eval "$(ssh-agent -s)"
+
 # Aliases
 alias ls="exa -alh --group-directories-first" 
 alias gti="git"
